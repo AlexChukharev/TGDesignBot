@@ -3,10 +3,10 @@ import datetime
 import json
 import pickle
 
-from TGDesignBot.DBHandler import get_template_id_by_name, delete_template
-from TGDesignBot.DBHandler.fill_database import fill_database
-from TGDesignBot.YandexDisk import YaDiskInfo
-from TGDesignBot.YandexDisk.YaDiskHandler import get_last_added_files, __get_templates_from_trash__, \
+from DBHandler import get_template_id_by_name, delete_template
+from DBHandler.fill_database import fill_database
+from YandexDisk import YaDiskInfo
+from YandexDisk.YaDiskHandler import get_last_added_files, __get_templates_from_trash__, \
     update_tree
 
 
