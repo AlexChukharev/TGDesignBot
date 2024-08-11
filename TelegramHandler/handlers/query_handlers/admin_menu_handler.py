@@ -8,14 +8,14 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 import aiogram.exceptions as tg_exceptions
 
-from TGDesignBot.utility.checkers import is_admin_with_json
-from TGDesignBot.utility.tg_utility import (
+from utility.checkers import is_admin_with_json
+from utility.tg_utility import (
     can_go_right as check_right, get_list_of_files,
     admin_from_chose_dir_to_choose_file, can_go_left as check_left,
     can_go_back as check_back, update_data as update_user_info,
     update_indx as update_user_indx
 )
-from TGDesignBot.YandexDisk.YaDiskHandler import upload_to_disk
+from YandexDisk.YaDiskHandler import upload_to_disk
 
 from ...keyboards import choose_file_for_delete, to_admin_menu
 from ...keyboards.start_and_simple_button import (

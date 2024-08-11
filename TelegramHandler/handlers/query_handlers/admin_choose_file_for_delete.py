@@ -6,11 +6,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
-from TGDesignBot.utility.tg_utility import can_go_right as check_right, can_go_left as check_left, \
+from utility.tg_utility import can_go_right as check_right, can_go_left as check_left, \
     update_indx as update_user_indx
 from ...keyboards import choose_tags_query
 from ...keyboards.choose_file_keyboard import choose_file_for_delete, back_in_last_state
-from ....YandexDisk.YaDiskHandler import delete_from_disk
+from YandexDisk.YaDiskHandler import delete_from_disk
 
 router = Router()
 

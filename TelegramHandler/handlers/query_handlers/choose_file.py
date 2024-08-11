@@ -1,14 +1,14 @@
 import json
 
-from TGDesignBot.utility.tg_utility import can_go_right as check_right, \
+from utility.tg_utility import can_go_right as check_right, \
     download_with_link_query, send_file_from_local_for_query
-from TGDesignBot.utility.tg_utility import can_go_left as check_left
-from TGDesignBot.utility.tg_utility import update_indx as update_user_indx
-from TGDesignBot.DBHandler import (get_fonts_by_template_id,
+from utility.tg_utility import can_go_left as check_left
+from utility.tg_utility import update_indx as update_user_indx
+from DBHandler import (get_fonts_by_template_id,
                                    get_all_tags_by_template_id,
                                    get_slides_by_tags_and_template_id,
                                    get_templates_by_index, delete_template, get_template_id_by_name)
-from TGDesignBot.YandexDisk.YaDiskInfo import TemplateInfo
+from YandexDisk.YaDiskInfo import TemplateInfo
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -18,8 +18,8 @@ from aiogram.types import Message, CallbackQuery
 from ...keyboards import choose_category_text, error_in_send_file, main_menu_kb_query, choose_tags_query, \
     choose_one_file
 from ...keyboards.choose_file_keyboard import choose_file_kb_query, download_file_query, work_with_tags_query
-from TGDesignBot.pptxHandler import get_template_of_slides, SlideInfo, remove_template
-from TGDesignBot.YandexDisk import get_download_link
+from pptxHandler import get_template_of_slides, SlideInfo, remove_template
+from YandexDisk import get_download_link
 
 router = Router()
 

@@ -1,7 +1,7 @@
 import psycopg2
-from TGDesignBot.DBHandler.config import load_config
-from TGDesignBot.YandexDisk.YaDiskInfo import TemplateInfo, FontInfo, ImageInfo
-from ..pptxHandler import pptxHandler
+from DBHandler.config import load_config
+from YandexDisk.YaDiskInfo import TemplateInfo, FontInfo, ImageInfo
+from pptxHandler import pptxHandler
 from . import select_scripts as select_scripts
 
 

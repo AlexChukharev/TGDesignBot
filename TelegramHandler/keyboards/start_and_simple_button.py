@@ -3,7 +3,7 @@ from aiogram.types import ReplyKeyboardMarkup, CallbackQuery
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.types import Message
-from TGDesignBot.utility.checkers import is_admin_with_json
+from utility.checkers import is_admin_with_json
 
 
 # Starting menu.

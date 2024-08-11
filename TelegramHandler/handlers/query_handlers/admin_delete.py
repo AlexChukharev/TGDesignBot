@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
-from TGDesignBot.utility.checkers import is_admin_with_json
+from utility.checkers import is_admin_with_json
 from ...keyboards import to_admin_menu
 from ...keyboards.start_and_simple_button import only_main_menu_button_kb, go_to_main_menu
 

@@ -3,7 +3,7 @@ import os
 
 import yadisk
 from pptx import Presentation
-from TGDesignBot.YandexDisk.YaDiskInfo import TemplateInfo
+from YandexDisk.YaDiskInfo import TemplateInfo
 import aspose.slides as slides
 
 ya_disk = yadisk.YaDisk(token=str(os.getenv('YANDEX_DISK_TOKEN')))

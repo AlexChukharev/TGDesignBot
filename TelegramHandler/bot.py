@@ -6,16 +6,16 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
-from TGDesignBot.TelegramHandler.handlers import (simple_func_handler,
+from TelegramHandler.handlers import (simple_func_handler,
                                                   main_menu_handler,
                                                   no_handled)
-from TGDesignBot.TelegramHandler.handlers.query_handlers import walker_menu as q_walker_menu
-from TGDesignBot.TelegramHandler.handlers.query_handlers import choose_file as q_choose_file
-from TGDesignBot.TelegramHandler.handlers.query_handlers import admin_menu_handler as q_admin_menu_handler
-from TGDesignBot.TelegramHandler.handlers.query_handlers import \
+from TelegramHandler.handlers.query_handlers import walker_menu as q_walker_menu
+from TelegramHandler.handlers.query_handlers import choose_file as q_choose_file
+from TelegramHandler.handlers.query_handlers import admin_menu_handler as q_admin_menu_handler
+from TelegramHandler.handlers.query_handlers import \
     admin_choose_file_for_delete as q_admin_choose_file_for_delete
-from TGDesignBot.TelegramHandler.handlers.query_handlers import admin_add as q_admin_add
-from TGDesignBot.TelegramHandler.handlers.query_handlers import admin_delete as q_admin_delete
+from TelegramHandler.handlers.query_handlers import admin_add as q_admin_add
+from TelegramHandler.handlers.query_handlers import admin_delete as q_admin_delete
 
 
 async def setup_bot_commands(bot: Bot):
