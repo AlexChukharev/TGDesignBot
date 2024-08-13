@@ -6,6 +6,7 @@ sending fonts to slides and presentations, and retrieving
 all fonts from the folder where the user is located
 
 ## How to install (Linux)
+0. Python 3.10.12 + install ``` libgdiplus/mono-libgdiplus``` 
 1. Clone the repository using `git clone`
 2. Create a virtual environment near the repository folder using 
 ``` 

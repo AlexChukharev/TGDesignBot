@@ -109,6 +109,7 @@ def get_template_of_slides(path: str, slide_info: SlideInfo):
             if not (idx in slide_info.idx_list):
                 source_pres.slides.remove_at(idx)
         __remove_all_comments__(source_pres)
+        source_pres.sections.clear()
         source_pres.save(path, slides.export.SaveFormat.PPTX)
 
     remove_all_watermarks(path)

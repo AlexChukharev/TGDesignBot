@@ -2,7 +2,7 @@
 __pycache__
 ../../../Repo/TGDesignBot/main/Data/DataFromUser
 Data/Templates/
-Data/slides/
 Data/forZip/
 Data/Buffer/
+Tree/ObjectTree.pkl
 .env

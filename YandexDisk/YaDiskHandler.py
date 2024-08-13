@@ -66,7 +66,7 @@ def __search_in_directory__(directory: str,
 def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaDiskInfo):
     check_token(ya_disk)
     try:
-        __search_in_directory__('/', last_updated_time, ya_disk_info)
+        __search_in_directory__('/DesignBot/', last_updated_time, ya_disk_info)
     except Exception as e:
         ya_disk_info.clear()
         raise Exception("Can't find any files")
@@ -99,7 +99,7 @@ def __add_nodes__(directory: str, last_updated_time, tree: Tree):
     for item in ya_disk.listdir(directory):
         if item.is_dir() and (not is_images(item)) and (not is_font(item)):
             if last_updated_time < item.created:
-                if directory == "/":
+                if directory == "/DesignBot/":
                     tree.insert("root", item.name)
                 else:
                     tree.insert(directory[directory.rfind('/') + 1:], item.name)
