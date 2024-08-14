@@ -5,11 +5,11 @@ import pickle
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 
-from TGDesignBot.DBHandler.initialize_database import initialize_database
-from TGDesignBot.TelegramHandler import bot as TGbot
-from TGDesignBot.Tree.ClassTree import Tree
-from TGDesignBot.YandexDisk.UpdateDisk import update_tree_and_db
-from TGDesignBot.YandexDisk.YaDiskHandler import update_tree
+from DBHandler.initialize_database import initialize_database
+from TelegramHandler import bot as TGbot
+from Tree.ClassTree import Tree
+from YandexDisk.UpdateDisk import update_tree_and_db
+from YandexDisk.YaDiskHandler import update_tree
 
 
 async def main():

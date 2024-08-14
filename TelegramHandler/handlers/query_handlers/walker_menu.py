@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
-from TGDesignBot.utility.tg_utility import (
+from utility.tg_utility import (
     can_go_right as check_right,
     from_button_to_file,
     set_file_type,

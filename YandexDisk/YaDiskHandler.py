@@ -5,10 +5,10 @@ import pickle
 
 from dotenv import load_dotenv
 import yadisk
-from TGDesignBot.DBHandler import get_template_id_by_name
-from TGDesignBot.Tree.ClassTree import Tree
-from TGDesignBot.YandexDisk.YaDiskInfo import YaDiskInfo
-from TGDesignBot.DBHandler import delete_template
+from DBHandler import get_template_id_by_name
+from Tree.ClassTree import Tree
+from YandexDisk.YaDiskInfo import YaDiskInfo
+from DBHandler import delete_template
 
 from .YaDiskInfo import TemplateInfo
 
@@ -90,7 +90,7 @@ def __get_templates_from_trash__(directory: str,
 def __delete_nodes__(directory: str, tree: Tree):
     for item in ya_disk.trash_listdir(directory):
         if item.is_dir():
-            __delete_nodes__(item.path  , tree)
+            __delete_nodes__(item.path, tree)
             tree.delete_node(item.name)
 
 
@@ -110,7 +110,7 @@ def __add_nodes__(directory: str, last_updated_time, tree: Tree):
 def update_tree(tree: Tree, last_updated_time):
     check_token(ya_disk)
     __delete_nodes__('/', tree)
-    __add_nodes__('/', last_updated_time, tree)
+    __add_nodes__('/DesignBot/', last_updated_time, tree)
     with open("./Tree/ObjectTree.pkl", "wb") as fp:
         pickle.dump(tree, fp)
 

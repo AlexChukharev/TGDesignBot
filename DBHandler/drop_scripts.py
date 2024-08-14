@@ -1,5 +1,5 @@
 import psycopg2
-from TGDesignBot.DBHandler.config import load_config
+from DBHandler.config import load_config
 
 
 def drop_tables():

@@ -3,7 +3,7 @@ import json
 from aiogram.exceptions import TelegramNetworkError
 from aiogram.methods import send_document
 
-from TGDesignBot.DBHandler import (get_templates_from_child_directories,
+from DBHandler import (get_templates_from_child_directories,
                                    get_fonts_from_child_directories,
                                    get_images_from_child_directories)
 from aiogram.fsm.context import FSMContext
@@ -19,8 +19,8 @@ import os
 import shutil
 import zipfile
 
-from TGDesignBot.TelegramHandler.keyboards import no_font, error_in_send_file
-from TGDesignBot.YandexDisk import get_download_link
+from TelegramHandler.keyboards import no_font, error_in_send_file
+from YandexDisk import get_download_link
 
 
 async def can_go_right(indx_list_end: int, len_child_list: int) -> bool:
