@@ -10,7 +10,7 @@ from ..keyboards.InlineKeyboards.searchKB import build_choose_kb
 
 router = Router()
 
-users = []
+users = [928962436, 58566456, 197284014]
 
 
 class UserStates(StatesGroup):
@@ -27,7 +27,7 @@ class UserStates(StatesGroup):
 async def cmd_start_handler(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
-        f'Приветствую, {message.from_user.first_name}. Я DesignBot. Чем я могу вам помочь?',
+        f'Привет, {message.from_user.first_name}! Я ViscommsBot, чем могу помочь?',
         reply_markup=start_menu_kb(message)
     )
 
@@ -37,7 +37,7 @@ async def cmd_start_handler(message: Message, state: FSMContext):
 async def cmd_cancel_handler(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
-        text="Вы в главном меню",
+        text="Чем могу помочь?",
         reply_markup=start_menu_kb(message)
     )
 
@@ -47,7 +47,7 @@ async def cmd_cancel_handler(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback_query.bot.send_message(
         chat_id=callback_query.message.chat.id,
-        text="Вы в главном меню",
+        text="Чем могу помочь?",
         reply_markup=start_menu_kb_query(callback_query)
     )
 

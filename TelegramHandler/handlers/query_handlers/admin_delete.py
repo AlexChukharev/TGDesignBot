@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
-from utility.checkers import is_admin_with_json
+from utility.checkers import is_admin
 from ...keyboards import to_admin_menu
 from ...keyboards.start_and_simple_button import only_main_menu_button_kb, go_to_main_menu
 
@@ -19,7 +19,7 @@ class AdminState(StatesGroup):
 
 
 @router.callback_query(F.data == "old_admin_delete",
-                       lambda callback_query: is_admin_with_json(callback_query.from_user.id))
+                       lambda callback_query: is_admin(callback_query.from_user.id))
 async def initiate_delete_admin(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
     await state.set_state(AdminState.input_id_for_delete)

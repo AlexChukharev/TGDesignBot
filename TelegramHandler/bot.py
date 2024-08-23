@@ -21,7 +21,7 @@ from TelegramHandler.handlers.query_handlers import admin_delete as q_admin_dele
 async def setup_bot_commands(bot: Bot):
     bot_commands = [
         BotCommand(command="/start", description="Начать работу с ботом"),
-        BotCommand(command="/actions", description="Узнать основные функции"),
+        # BotCommand(command="/actions", description="Узнать основные функции"),
         BotCommand(command="/help", description="Напишите нам, для решения проблем!")
     ]
     await bot.set_my_commands(bot_commands)

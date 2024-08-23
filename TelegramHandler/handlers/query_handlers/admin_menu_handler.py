@@ -8,7 +8,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 import aiogram.exceptions as tg_exceptions
 
-from utility.checkers import is_admin_with_json
+from utility.checkers import is_admin
 from utility.tg_utility import (
     can_go_right as check_right, get_list_of_files,
     admin_from_chose_dir_to_choose_file, can_go_left as check_left,
@@ -31,17 +31,17 @@ class AdminState(StatesGroup):
     choose_file = State()
 
 
-@router.message(F.text.lower() == "админ-панель", lambda message: is_admin_with_json(message.from_user.id))
+@router.message(F.text.lower() == "админ-панель", lambda message: is_admin(message.from_user.id))
 async def admin_menu(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(text='Выберите действие', reply_markup=admin_panel_query())
 
-@router.callback_query(F.data == "admin_menu_choose", lambda message: is_admin_with_json(message.from_user.id))
+@router.callback_query(F.data == "admin_menu_choose", lambda message: is_admin(message.from_user.id))
 async def admin_menu(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback_query.message.edit_text(text="Выберите действие \n\n", reply_markup=admin_panel_query())
 
-@router.callback_query(F.data == "admin_add", lambda callback_query: is_admin_with_json(callback_query.from_user.id))
+@router.callback_query(F.data == "admin_add", lambda callback_query: is_admin(callback_query.from_user.id))
 async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
     await state.set_state(AdminState.choose_button)
@@ -67,7 +67,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
                                            reply_markup=reply_markup)
 
 
-@router.callback_query(F.data == "admin_delete", lambda callback_query: is_admin_with_json(callback_query.from_user.id))
+@router.callback_query(F.data == "admin_delete", lambda callback_query: is_admin(callback_query.from_user.id))
 async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
     await state.set_state(AdminState.choose_button)

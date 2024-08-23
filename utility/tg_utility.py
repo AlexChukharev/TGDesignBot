@@ -50,7 +50,6 @@ async def update_indx(state: FSMContext, indx_list_start, indx_list_end) -> None
 async def get_list_of_files(state: FSMContext) -> list:
     user_info = await state.get_data()
     list_of_path = user_info['path']
-    list_of_files = None
     # Check type of search
     if list_of_path[0] == "Шаблон презентаций":
         path = '/'.join(list_of_path[1:])
@@ -209,26 +208,26 @@ async def send_file_from_local_for_query(callback_query: CallbackQuery, path, fi
     ).as_(callback_query.bot)
 
 
-async def send_zips(message: (Message, CallbackQuery), list_data):
-    for_zip_path = f'Data/forZip'
-    user_zip_path = for_zip_path + '/' + f'{message.from_user.id}'
-    archive_name = f'{message.from_user.id}.zip'
-    path_to_zip = for_zip_path + '/' + archive_name
-    try:
-        os.mkdir(user_zip_path)
-        for file in list_data:
-            link = get_download_link(file[1] + '/' + file[3])
-            urllib.request.urlretrieve(link, user_zip_path + f'/{file[3]}.zip')
-        merge_fonts(user_zip_path, path_to_zip)
-        await send_file_from_local(message, path_to_zip, 'Fonts.zip')
-    except:
-        await message.answer(
-            text=f'Извините, возникла техническая ошибка. Сообщите нам: '
-                 f'{json.load(open("./config.json"))["email"]} и '
-                 'попробуйте позже')
-
-    shutil.rmtree(user_zip_path)
-    os.remove(path_to_zip)
+# async def send_zips(message: (Message, CallbackQuery), list_data):
+#     for_zip_path = f'Data/forZip'
+#     user_zip_path = for_zip_path + '/' + f'{message.from_user.id}'
+#     archive_name = f'{message.from_user.id}.zip'
+#     path_to_zip = for_zip_path + '/' + archive_name
+#     try:
+#         os.mkdir(user_zip_path)
+#         for file in list_data:
+#             link = get_download_link(file[1] + '/' + file[3])
+#             urllib.request.urlretrieve(link, user_zip_path + f'/{file[3]}.zip')
+#         merge_fonts(user_zip_path, path_to_zip)
+#         await send_file_from_local(message, path_to_zip, 'Fonts.zip')
+#     except:
+#         await message.answer(
+#             text=f'Извините, возникла техническая ошибка. Сообщите нам: '
+#                  f'{json.load(open("./config.json"))["owner"]} и '
+#                  'попробуйте позже')
+#
+#     shutil.rmtree(user_zip_path)
+#     os.remove(path_to_zip)
 
 
 async def send_zips_for_query(callback_query: CallbackQuery, list_data):
@@ -237,16 +236,24 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data):
     archive_name = f'{callback_query.from_user.id}.zip'
     path_to_zip = for_zip_path + '/' + archive_name
     try:
-        os.mkdir(user_zip_path)
+        if not os.path.exists(user_zip_path):
+            os.mkdir(user_zip_path)
+        counter = 1
         for file in list_data:
             link = get_download_link(file[1] + '/' + file[3])
-            urllib.request.urlretrieve(link, user_zip_path + f'/{file[3]}.zip')
+            try:
+                urllib.request.urlretrieve(link, user_zip_path + f'/{counter}_{file[3]}')
+                counter += 1
+            except Exception as X:
+                print('error while reading url')
+                print(X)
         merge_fonts(user_zip_path, path_to_zip)
         await send_file_from_local_for_query(callback_query, path_to_zip, 'Fonts.zip')
     except:
         await callback_query.answer(
-            text='Извините, возникла техническая ошибка. Сообщите нам: example@mail.com и попробуйте позже')
-
+            text=f'Извините, возникла техническая ошибка. Сообщите нам: '
+                  f'{json.load(open("./config.json"))["owner"]} или попробуйте позже'
+        )
     shutil.rmtree(user_zip_path)
     os.remove(path_to_zip)
 
@@ -254,32 +261,33 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data):
 # Enter the reply message, the path on Yadisk, and the local path
 # to download the files so that the bot sends the user the
 # correct files
-async def start_send_fonts(message: Message, YDpath):
-    list_fonts = get_fonts_from_child_directories(YDpath)
-    if len(list_fonts) == 0:
-        await message.answer(
-            text='По данному запросу не найдено ни одного шрифта!'
-        )
-    try:
-        await message.bot.send_chat_action(
-            chat_id=message.chat.id,
-            action=ChatAction.UPLOAD_DOCUMENT,
-        )
-    except:
-        print('Error')
-    try:
-        async with ChatActionSender.upload_document(
-            bot=message.bot,
-            chat_id=message.chat.id,
-        ):
-            await send_zips(message, list_fonts)
-    except:
-        print('Error')
+# async def start_send_fonts(message: Message, YDpath):
+#     list_fonts = get_fonts_from_child_directories(YDpath)
+#     if len(list_fonts) == 0:
+#         await message.answer(
+#             text='По данному запросу не найдено ни одного шрифта!'
+#         )
+#     try:
+#         await message.bot.send_chat_action(
+#             chat_id=message.chat.id,
+#             action=ChatAction.UPLOAD_DOCUMENT,
+#         )
+#     except:
+#         print('Error')
+#     try:
+#         async with ChatActionSender.upload_document(
+#             bot=message.bot,
+#             chat_id=message.chat.id,
+#         ):
+#             await send_zips(message, list_fonts)
+#     except:
+#         print('Error')
 
 
 async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath):
     list_fonts = get_fonts_from_child_directories(YDpath)
     if len(list_fonts) == 0:
+        print('expected fonts dont found')
         reply_markup = await no_font()
         await callback_query.message.edit_text(
             text='По данному запросу не найдено ни одного шрифта!',
@@ -292,6 +300,7 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath):
         )
 
     except:
+        # TODO обработать ошибки
         print('Error')
     try:
         async with ChatActionSender.upload_document(
@@ -300,6 +309,7 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath):
         ):
             await send_zips_for_query(callback_query, list_fonts)
     except:
+        # TODO обработать ошибки
         print('Error')
 
 
@@ -309,7 +319,7 @@ def merge_fonts(input_folder, output_zip):
 
     with zipfile.ZipFile(output_zip, 'w') as output_zip_file:
         dir_name = 'Fonts'
-        output_zip_file.mkdir(dir_name)
+        # output_zip_file.mkdir(dir_name)
         for root, _, files in os.walk(input_folder):
             for file in files:
                 if file.endswith('.zip'):

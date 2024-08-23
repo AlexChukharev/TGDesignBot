@@ -1,30 +1,36 @@
 import json
-
-from utility.tg_utility import can_go_right as check_right, \
-    download_with_link_query, send_file_from_local_for_query
-from utility.tg_utility import can_go_left as check_left
-from utility.tg_utility import update_indx as update_user_indx
-from DBHandler import (get_fonts_by_template_id,
-                                   get_all_tags_by_template_id,
-                                   get_slides_by_tags_and_template_id,
-                                   get_templates_by_index, delete_template, get_template_id_by_name)
-from YandexDisk.YaDiskInfo import TemplateInfo
+from telegram.constants import ParseMode
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
+from utility.tg_utility import can_go_right as check_right, \
+    download_with_link_query, send_file_from_local_for_query
+from utility.tg_utility import can_go_left as check_left
+from utility.tg_utility import update_indx as update_user_indx
+
+from DBHandler import (get_fonts_by_template_id,
+                                   get_all_tags_by_template_id,
+                                   get_slides_by_tags_and_template_id,
+                                   get_templates_by_index, delete_template, get_template_id_by_name)
+
+from YandexDisk.YaDiskInfo import TemplateInfo
+from YandexDisk import get_download_link, get_file_size
+
 from ...keyboards import choose_category_text, error_in_send_file, main_menu_kb_query, choose_tags_query, \
     choose_one_file
 from ...keyboards.choose_file_keyboard import choose_file_kb_query, download_file_query, work_with_tags_query
+
 from pptxHandler import get_template_of_slides, SlideInfo, remove_template
-from YandexDisk import get_download_link
+
 
 router = Router()
 
 
 class WalkerState(StatesGroup):
+    # TODO не только это — изучить и добавить описание
     # In the state we store child_list, indx_list_start\end, can_go_back
     choose_button = State()
     choose_category = State()
@@ -49,6 +55,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
         can_go_right = await check_right(indx_list_end, len(file_name_list))
         can_go_left = await check_left(indx_list_start)
 
+        # TODO сделать кнопки с надписями
         reply_markup = await choose_file_kb_query(file_name_list[indx_list_start:indx_list_end], can_go_left,
                                                   can_go_right)
         text = await choose_one_file(
@@ -210,7 +217,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
 
         await update_user_indx(state, indx_list_start, indx_list_end)
 
-
+# TODO можно убрать
 @router.callback_query(WalkerState.choose_tags, F.data == "clear_tags")
 async def clear_tags(callback_query: CallbackQuery, state: FSMContext):
     # Clear user_tags
@@ -236,6 +243,7 @@ async def clear_tags(callback_query: CallbackQuery, state: FSMContext):
     )
 
 
+# TODO переименовать,добавить описание, обновить
 @router.callback_query(WalkerState.choose_tags, F.data == "find_with_tags")
 async def clear_tags(callback_query: CallbackQuery, state: FSMContext):
     user_info = await state.get_data()
@@ -263,6 +271,7 @@ async def clear_tags(callback_query: CallbackQuery, state: FSMContext):
                 reply_markup=reply_markup
             )
         except:
+            # TODO обработать ошибки
             print('error')
     else:
         try:
@@ -270,8 +279,11 @@ async def clear_tags(callback_query: CallbackQuery, state: FSMContext):
                 text='Дождитесь, пока файл загрузится...'
             )
         except:
+            # TODO обработать ошибки
             print('error2')
+        # IDEA здесь можно добавить кеширование
         path_to_save = f'./Data/slides/{callback_query.message.from_user.id}.pptx'
+        # ????
         slide_info = SlideInfo(slides_list[0][0], ';'.join(user_tags))
         for slide in slides_list[1:]:
             slide_info.add_id(slide[0])
@@ -283,6 +295,7 @@ async def clear_tags(callback_query: CallbackQuery, state: FSMContext):
         try:
             await send_file_from_local_for_query(callback_query, path_to_save, 'Slides.pptx')
         except:
+            # TODO обработать ошибки
             print('err2')
         reply_markup = download_file_query()
         await callback_query.bot.send_message(
@@ -292,7 +305,7 @@ async def clear_tags(callback_query: CallbackQuery, state: FSMContext):
         )
         remove_template(path_to_save)
 
-
+# TODO переписать на дерево тегов
 @router.message(WalkerState.choose_tags)
 async def choose_tags(message: Message, state: FSMContext):
     user_info = await state.get_data()
@@ -330,7 +343,7 @@ async def choose_tags(message: Message, state: FSMContext):
         reply_markup=reply_markup
     )
 
-
+# TODO переписать на дерево тегов
 @router.callback_query(WalkerState.choose_tags)
 async def choose_tags(callback_query: CallbackQuery, state: FSMContext):
     user_info = await state.get_data()
@@ -364,13 +377,14 @@ async def choose_tags(callback_query: CallbackQuery, state: FSMContext):
     )
 
 
+# Обрабатывает поиск материалов по Яндекс Диску
+# TODO описание функции
 @router.callback_query(WalkerState.choose_file)
 async def choose_category(callback_query: CallbackQuery, state: FSMContext):
     with open("./config.json", "r") as file:
         config = json.load(file)
         dist_index = config['dist']
         user_info = await state.get_data()
-        file_name_list = user_info['file_name_list']
         type_file = user_info['type_file']
         indx_list_start = user_info['indx_list_start']
         indx_child = indx_list_start + int(callback_query.data) - 1
@@ -399,6 +413,7 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
 
             try:
                 link = get_download_link(str(file_path) + '/' + str(file_name))
+                file_size = get_file_size(str(file_path) + '/' + str(file_name))
             except Exception:
                 await callback_query.message.edit_text(
                     text="Не удалось найти данный файл, возможно он был перемещён или удалён."
@@ -408,26 +423,37 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                 delete_template(template_id)
                 return
 
-            await callback_query.message.edit_text(
-                text="Ваш файл загружается..."
-            )
-            try:
-                await download_with_link_query(callback_query, link, file_name)
+            # TODO перенести проверку в отдельную функцию и проверить, где еще она нужна
+            if file_size < 50*1024*1024:
+                await callback_query.message.edit_text(
+                    text="Дождитесь пока файл загрузится..."
+                )
+                try:
+                    await download_with_link_query(callback_query, link, file_name)
+                    reply_markup = download_file_query()
+                    await callback_query.message.delete()
+                    await callback_query.bot.send_message(
+                        chat_id=callback_query.from_user.id,
+                        text="Ваш файл успешно загружен!",
+                        reply_markup=reply_markup
+                    )
+
+                except:
+                    reply_markup = await error_in_send_file()
+                    await callback_query.message.delete()
+                    await callback_query.bot.send_message(
+                        chat_id=callback_query.from_user.id,
+                        text=f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']}, "
+                             f"или попробуй позже",
+                        reply_markup=reply_markup
+                    )
+            else:
                 reply_markup = download_file_query()
                 await callback_query.message.delete()
                 await callback_query.bot.send_message(
                     chat_id=callback_query.from_user.id,
-                    text="Ваш файл успешно загружен!",
-                    reply_markup=reply_markup
-                )
-
-            except:
-                reply_markup = await error_in_send_file()
-                await callback_query.message.delete()
-                await callback_query.bot.send_message(
-                    chat_id=callback_query.from_user.id,
-                    text=f"Ошибка времени ожидания, сообщите о проблеме {json.load(open('./config.json'))['email']}, "
-                         f"или попробуйте позже",
+                    text=f"Забирай шаблон по <a href='{link}'>ссылке</a>",
+                    parse_mode=ParseMode.HTML,
                     reply_markup=reply_markup
                 )
 
@@ -475,7 +501,6 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                     text="Не удалось найти данный файл, возможно он был перемещён или удалён."
                 )
                 return
-            reply_markup = download_file_query()
             try:
                 await callback_query.message.edit_text(
                     text="Дождитесь полной отправки шрифтов..."

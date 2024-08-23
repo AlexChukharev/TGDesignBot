@@ -1,24 +1,8 @@
-from aiogram import Bot, Dispatcher, types, F
-from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
+from aiogram import types
+from aiogram.types import ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-
-
-async def choose_file_kb(key_list: list, message: Message, can_go_left: bool,
-                         can_go_right: bool) -> ReplyKeyboardMarkup:
-    kb = ReplyKeyboardBuilder()
-    for elem in key_list:
-        kb.add(types.KeyboardButton(text=elem))
-    kb.adjust(3)
-    if (can_go_right):
-        kb.button(text="Далее")
-    if (can_go_left):
-        kb.button(text="Назад")
-    kb.adjust(2)
-    kb.button(text="В главное меню")
-    kb.adjust(1)
-    return kb.as_markup(resize_keyboard=True)
 
 
 async def choose_file_kb_query_handler(key_list: list, can_go_left: bool, can_go_right: bool) -> list:
@@ -95,13 +79,6 @@ def to_admin_menu() -> InlineKeyboardMarkup:
     ]
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
-
-
-def download_file() -> ReplyKeyboardMarkup:
-    kb = ReplyKeyboardBuilder()
-    kb.button(text="Получить шрифты")
-    kb.button(text="В главное меню")
-    return kb.as_markup(resize_keyboard=True)
 
 
 def download_file_query() -> InlineKeyboardMarkup:
