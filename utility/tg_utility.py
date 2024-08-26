@@ -57,19 +57,20 @@ async def get_list_of_files(state: FSMContext) -> list:
     elif list_of_path[0] == "Корпоративные шрифты":
         path = '/'.join(list_of_path[1:])
         list_of_files = await get_templates_from_child_directories(path)
-    elif list_of_path[0] == "Изображения":
-        path = '/'.join(list_of_path[1:])
-        list_of_files = get_images_from_child_directories(path)
-    elif list_of_path[0] == "Готовые слайды о компании":
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
+    # elif list_of_path[0] == "Изображения":
+    #     path = '/'.join(list_of_path[1:])
+    #     list_of_files = get_images_from_child_directories(path)
+    # elif list_of_path[0] == "Готовые слайды о компании":
+    #     path = '/'.join(list_of_path[1:])
+    #     list_of_files = await get_templates_from_child_directories(path)
     else:
         path = '/'.join(list_of_path[1:])
         list_of_files = await get_templates_from_child_directories(path)
     return list_of_files
 
 
-async def from_button_to_file(state: FSMContext, files_list: list, file_name_list: list, to_state, paths_list : list) -> None:
+async def from_button_to_file(state: FSMContext,
+                              files_list: list, file_name_list: list, to_state, paths_list: list) -> None:
     global dist_indx
     user_info = await state.get_data()
     path = user_info['path']
@@ -88,8 +89,29 @@ async def from_button_to_file(state: FSMContext, files_list: list, file_name_lis
     await state.update_data(paths_list=paths_list)
 
 
-async def admin_from_chose_dir_to_choose_file(state: FSMContext, files_list: list, file_name_list: list,
-                                              to_state) -> None:
+async def change_state_to_tags(state: FSMContext, to_state,
+                              files_list: list, file_name_list: list, paths_list: list, tags: list) -> None:
+    global dist_indx
+    user_info = await state.get_data()
+    path = user_info['path']
+    indx_list_start = user_info['indx_list_start']
+    indx_list_end = user_info['indx_list_end']
+    child_list = user_info['child_list']
+    type_file = user_info['type_file']
+    await state.set_state(to_state)
+    await state.update_data(path=path)
+    await state.update_data(indx_list_start=indx_list_start)
+    await state.update_data(indx_list_end=indx_list_end)
+    await state.update_data(child_list=child_list)
+    await state.update_data(files_list=files_list)
+    await state.update_data(file_name_list=file_name_list)
+    await state.update_data(type_file=type_file)
+    await state.update_data(paths_list=paths_list)
+    await state.update_data(tags=tags)
+
+
+async def admin_from_chose_dir_to_choose_file(state: FSMContext,
+                                              files_list: list, file_name_list: list, to_state) -> None:
     global dist_indx
     user_info = await state.get_data()
     path = user_info['path']
@@ -112,9 +134,12 @@ async def set_file_type(type_file: str, state: FSMContext) -> str:
     elif type_file in ("Корпоративные шрифты", "fonts"):
         await state.update_data(type_file='font')
         return 'font'
-    elif type_file in ("Готовые слайды о компании", "slides"):
-        await state.update_data(type_file='slide')
-        return 'slide'
+    # elif type_file in ("Готовые слайды о компании", "slides"):
+    #     await state.update_data(type_file='slide')
+    #     return 'slide'
+    elif type_file == "search_by_tags":
+        await state.update_data(type_file='search_by_tags')
+        return 'search_by_tags'
     return 'None'
 
 

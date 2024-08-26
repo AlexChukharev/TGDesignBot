@@ -64,14 +64,14 @@ def main_menu_kb_query():
 
 
 # Buttons with choosing categories.
-def choose_category_kb() -> ReplyKeyboardMarkup:
-    kb = ReplyKeyboardBuilder()
-    kb.button(text="Шаблон презентаций")
-    kb.button(text="Готовые слайды о компании")
-    kb.button(text="Корпоративные шрифты")
-    kb.button(text="В главное меню")
-    kb.adjust(1)
-    return kb.as_markup(resize_keyboard=True)
+# def choose_category_kb() -> ReplyKeyboardMarkup:
+#     kb = ReplyKeyboardBuilder()
+#     kb.button(text="Шаблон презентаций")
+#     kb.button(text="Готовые слайды о компании")
+#     kb.button(text="Корпоративные шрифты")
+#     kb.button(text="В главное меню")
+#     kb.adjust(1)
+#     return kb.as_markup(resize_keyboard=True)
 
 
 async def choose_category_text(key_list: list) -> str:
@@ -287,6 +287,21 @@ async def error_in_send_file() -> InlineKeyboardMarkup:
             callback_data='menu_choose'
         )]
     ]
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+
+async def tags_buttons(tags: list) -> InlineKeyboardMarkup:
+    rows = []
+    counter = 1
+    for tag in tags:
+        rows.append([
+            InlineKeyboardButton(
+                text=tag['name'],
+                callback_data=str(counter)
+            )
+        ])
+        counter += 1
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
 
