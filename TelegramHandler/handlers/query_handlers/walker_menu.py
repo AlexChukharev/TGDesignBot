@@ -27,7 +27,7 @@ from ...keyboards.start_and_simple_button import (
     choose_template_text_inner,
     choose_template_text_root,
     choose_category_callback,
-    error_in_send_file,
+    go_back_to_main_menu,
     tags_buttons,
     key_list_with_paths,
     choose_category_in_deadend_callback_for_fonts
@@ -71,7 +71,7 @@ async def load_tree() -> Tree:
 
 
 async def error_final(callback_query: CallbackQuery, text: str):
-    reply_markup = await error_in_send_file()
+    reply_markup = await go_back_to_main_menu()
     await callback_query.message.delete()
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -277,7 +277,7 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
         print('err2')
 
     # здесь реплай не ошибка, а просто "в главное меню"
-    reply_markup = await error_in_send_file()
+    reply_markup = await go_back_to_main_menu()
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text="Готово! Надеюсь, эти варианты тебе помогут",
@@ -332,7 +332,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         file_size = get_file_size(str(file_path) + '/' + str(file_name))
         print(file_size)
     except Exception:
-        reply_markup = await error_in_send_file()
+        reply_markup = await go_back_to_main_menu()
         template_info = TemplateInfo(str(file_name), str(file_path))
         template_id = get_template_id_by_name(template_info.path, template_info.name)
         delete_template(template_id)
@@ -362,7 +362,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
             )
 
         except:
-            reply_markup = await error_in_send_file()
+            reply_markup = await go_back_to_main_menu()
             await callback_query.message.delete()
             await callback_query.bot.send_message(
                 chat_id=callback_query.from_user.id,
@@ -464,7 +464,7 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
     except:
         return
     try:
-        reply_markup = await error_in_send_file()
+        reply_markup = await go_back_to_main_menu()
         await callback_query.bot.send_message(
             chat_id=callback_query.message.chat.id,
             text='Готово!',

@@ -48,8 +48,9 @@ async def choose_file_kb_query(key_list: list, can_go_left: bool, can_go_right: 
     rows = await choose_file_kb_query_handler(key_list, can_go_left, can_go_right)
     rows.append([
         InlineKeyboardButton(
-            text='Вернуться к выбору материалов',
-            callback_data='menu_choose'
+            text='В главное меню',
+            # callback_data='menu_choose'
+            callback_data='start'
         )
     ])
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
@@ -92,7 +93,8 @@ def download_file_query() -> InlineKeyboardMarkup:
         [
             InlineKeyboardButton(
                 text='В главное меню',
-                callback_data='menu_choose'
+                # callback_data='menu_choose'
+                callback_data='start'
             )
         ]
 

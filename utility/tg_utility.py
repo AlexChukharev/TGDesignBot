@@ -19,7 +19,7 @@ import os
 import shutil
 import zipfile
 
-from TelegramHandler.keyboards import no_font, error_in_send_file
+from TelegramHandler.keyboards import no_font, go_back_to_main_menu
 from YandexDisk import get_download_link
 
 
@@ -182,7 +182,7 @@ async def send_big_file_query(callback_query: CallbackQuery, link, file_name):
             ),
         ).as_(callback_query.bot)
     except TelegramNetworkError:
-        reply_markup = await error_in_send_file()
+        reply_markup = await go_back_to_main_menu()
         await callback_query.message.edit_text(
             text='Не удалось загрузить файл, попробуйте позже',
             reply_markup=reply_markup

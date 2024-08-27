@@ -36,6 +36,13 @@ async def admin_menu(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(text='Выберите действие', reply_markup=admin_panel_query())
 
+
+@router.callback_query(F.data == "new_admin_start", lambda message: is_admin(message.from_user.id))
+async def admin_menu(callback_query: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback_query.message.edit_text(text='Выберите действие', reply_markup=admin_panel_query())
+
+
 @router.callback_query(F.data == "admin_menu_choose", lambda message: is_admin(message.from_user.id))
 async def admin_menu(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()

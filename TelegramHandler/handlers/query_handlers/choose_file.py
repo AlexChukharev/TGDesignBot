@@ -19,7 +19,7 @@ from DBHandler import (get_fonts_by_template_id,
 from YandexDisk.YaDiskInfo import TemplateInfo
 from YandexDisk import get_download_link, get_file_size
 
-from ...keyboards import choose_category_text, error_in_send_file, main_menu_kb_query, choose_tags_query, \
+from ...keyboards import choose_category_text, go_back_to_main_menu, main_menu_kb_query, choose_tags_query, \
     choose_one_file
 from ...keyboards.choose_file_keyboard import choose_file_kb_query, download_file_query, work_with_tags_query
 
@@ -100,7 +100,6 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
             text=text,
             reply_markup=reply_markup
         )
-
         await update_user_indx(state, indx_list_start, indx_list_end)
 
 
@@ -112,7 +111,7 @@ async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
     list_fonts = get_fonts_by_template_id(template_id)
 
     if len(list_fonts) == 0:
-        reply_markup = await error_in_send_file()
+        reply_markup = await go_back_to_main_menu()
         await callback_query.message.edit_text(
             text="Для данной презентации нет шрифтов!",
             reply_markup=reply_markup
@@ -151,7 +150,7 @@ async def send_info(callback_query: CallbackQuery):
         print('Proxy error')
     path = './Data/Appdata/00 How to install fonts.pdf'
     await send_file_from_local_for_query(callback_query, path, 'How to install fonts.pdf')
-    reply_markup = await error_in_send_file()
+    reply_markup = await go_back_to_main_menu()
     await callback_query.message.delete()
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -439,7 +438,7 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                     )
 
                 except:
-                    reply_markup = await error_in_send_file()
+                    reply_markup = await go_back_to_main_menu()
                     await callback_query.message.delete()
                     await callback_query.bot.send_message(
                         chat_id=callback_query.from_user.id,
@@ -456,6 +455,14 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                     parse_mode=ParseMode.HTML,
                     reply_markup=reply_markup
                 )
+
+        if type_file == 'search_by_tags':
+            reply_markup = await go_back_to_main_menu()
+            await callback_query.message.edit_text(
+                text="Попался",
+                reply_markup=reply_markup
+            )
+            pass
 
         if type_file == 'slide':
             await state.clear()
@@ -489,7 +496,7 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
         if type_file == 'font':
             font_name = get_fonts_by_template_id(file_id)
             if len(font_name) == 0:
-                reply_markup = await error_in_send_file()
+                reply_markup = await go_back_to_main_menu()
                 await callback_query.message.edit_text(
                     text="Для данной презентации нет шрифтов!",
                     reply_markup=reply_markup
@@ -509,7 +516,7 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                 print('Error')
             try:
                 await download_with_link_query(callback_query, link, 'fonts.zip')
-                reply_markup = await error_in_send_file()
+                reply_markup = await go_back_to_main_menu()
                 await callback_query.message.delete()
                 await callback_query.bot.send_message(
                     chat_id=callback_query.message.chat.id,
