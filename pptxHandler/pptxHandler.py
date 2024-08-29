@@ -37,8 +37,8 @@ def install_templates(path: str, templates: list):
 
     try:
         for template in templates:
-            if os.path.exists(path + template.name):
-                continue
+            # if os.path.exists(path + template.name):
+            #     continue
             response = requests.get(ya_disk.get_download_link(template.path + '/' + template.name))
             with open(path + template.name, 'wb') as file:
                 file.write(response.content)

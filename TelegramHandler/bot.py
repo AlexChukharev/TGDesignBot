@@ -11,17 +11,12 @@ from TelegramHandler.handlers import (simple_func_handler,
                                                   no_handled)
 from TelegramHandler.handlers.query_handlers import walker_menu as q_walker_menu
 from TelegramHandler.handlers.query_handlers import choose_file as q_choose_file
-from TelegramHandler.handlers.query_handlers import admin_menu_handler as q_admin_menu_handler
-from TelegramHandler.handlers.query_handlers import \
-    admin_choose_file_for_delete as q_admin_choose_file_for_delete
-from TelegramHandler.handlers.query_handlers import admin_add as q_admin_add
-from TelegramHandler.handlers.query_handlers import admin_delete as q_admin_delete
 
 
 async def setup_bot_commands(bot: Bot):
     bot_commands = [
         BotCommand(command="/start", description="Начать работу с ботом"),
-        BotCommand(command="/actions", description="Узнать основные функции"),
+        # BotCommand(command="/actions", description="Узнать основные функции"),
         BotCommand(command="/help", description="Напишите нам, для решения проблем!")
     ]
     await bot.set_my_commands(bot_commands)
@@ -32,18 +27,19 @@ async def main():
     load_dotenv()
     bot = Bot(token=os.getenv('BOT_TOKEN'))
     dp = Dispatcher(storage=MemoryStorage())
-    # Include router
+
+    # Include routers
     dp.include_routers(
+        # главное меню
         main_menu_handler.router,
-        q_admin_menu_handler.router,
-        q_admin_add.router,
-        q_admin_delete.router,
-        q_admin_choose_file_for_delete.router,
+        # поиск материалов
         q_walker_menu.router,
         q_choose_file.router,
         simple_func_handler.router,
+        # обработка потерянных и некорректных сообщений
         no_handled.router
     )
+
     # Start bot
     await setup_bot_commands(bot)
     await bot.delete_webhook(drop_pending_updates=True)

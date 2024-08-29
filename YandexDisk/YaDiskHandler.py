@@ -150,6 +150,11 @@ def get_download_link(path: str) -> str:
     return ya_disk.get_download_link(path)
 
 
+def get_file_size(path: str) -> int:
+    check_token(ya_disk)
+    return ya_disk.get_meta(path).size
+
+
 # Delete file (not directory) from YaDisk.
 def delete_from_disk(path: str):
     check_token(ya_disk)
