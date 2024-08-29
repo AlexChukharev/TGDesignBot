@@ -32,18 +32,24 @@ async def main():
     load_dotenv()
     bot = Bot(token=os.getenv('BOT_TOKEN'))
     dp = Dispatcher(storage=MemoryStorage())
-    # Include router
+
+    # Include routers
     dp.include_routers(
+        # главное меню
         main_menu_handler.router,
+        # админские команды
         q_admin_menu_handler.router,
         q_admin_add.router,
         q_admin_delete.router,
         q_admin_choose_file_for_delete.router,
+        # поиск материалов
         q_walker_menu.router,
         q_choose_file.router,
         simple_func_handler.router,
+        # обработка потерянных и некорректных сообщений
         no_handled.router
     )
+
     # Start bot
     await setup_bot_commands(bot)
     await bot.delete_webhook(drop_pending_updates=True)

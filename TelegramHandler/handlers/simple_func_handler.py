@@ -30,9 +30,6 @@ async def cmd_feedback(message: Message):
 @router.callback_query(F.data == "bot_feedback")
 async def cmd_feedback(callback_query: CallbackQuery):
     reply_markup = await back_to_start()
-    # await callback_query.message.edit_text(
-    #     f"По любым проблемам с ботом или материалами пиши {json.load(open('./config.json'))['owner']}"
-    # )
     text = f"По любым проблемам с ботом или материалами пиши {json.load(open('./config.json'))['owner']}"
     await callback_query.message.edit_text(
         text=text,
@@ -51,4 +48,3 @@ async def cmd_feedback(callback_query: CallbackQuery):
         parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
-#     https://forms.yandex-team.ru/surveys/VISCOMMS/

@@ -120,7 +120,6 @@ def back_in_last_state() -> InlineKeyboardMarkup:
 async def work_with_tags(key_list: list, can_go_left: bool,
                          can_go_right: bool, state: FSMContext) -> ReplyKeyboardMarkup:
     user_info = await state.get_data()
-    user_tags = []
     user_tags = user_info['user_tags']
     kb = ReplyKeyboardBuilder()
     for elem in key_list:

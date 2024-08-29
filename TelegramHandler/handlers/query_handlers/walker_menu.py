@@ -25,12 +25,13 @@ from utility.tg_utility import (
 
 from ...keyboards.start_and_simple_button import (
     choose_template_text_inner,
-    choose_template_text_root,
+    choose_template_text_root_for_templates,
     choose_category_callback,
     go_back_to_main_menu,
     tags_buttons,
     key_list_with_paths,
-    choose_category_in_deadend_callback_for_fonts
+    choose_category_in_deadend_callback_for_fonts, choose_template_text_root_for_fonts,
+    choose_template_text_root_for_tags
 )
 from ...keyboards.choose_file_keyboard import download_file_query, choose_file_kb_query
 
@@ -112,7 +113,13 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
         False,
         type_file
     )
-    text = await choose_template_text_root(child_list[indx_list_start:indx_list_end])
+    text = ''
+    if type_file == 'template':
+        text = await choose_template_text_root_for_templates(child_list[indx_list_start:indx_list_end])
+    elif type_file == 'font':
+        text = await choose_template_text_root_for_fonts(child_list[indx_list_start:indx_list_end])
+    elif type_file == 'search_by_tags':
+        text = await choose_template_text_root_for_tags(child_list[indx_list_start:indx_list_end])
 
     await callback_query.message.edit_text(
         text=text,
@@ -202,7 +209,7 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
         type_file
     )
     if parent_name == 'root':
-        text = await choose_template_text_root(child_list[indx_list_start:indx_list_end])
+        text = await choose_template_text_root_for_templates(child_list[indx_list_start:indx_list_end])
     else:
         text = await choose_template_text_inner(tree.get_parent(cur_node_name), child_list[indx_list_start:indx_list_end])
 
@@ -276,7 +283,6 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
         # TODO обработать ошибки
         print('err2')
 
-    # здесь реплай не ошибка, а просто "в главное меню"
     reply_markup = await go_back_to_main_menu()
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -292,8 +298,6 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
     tags_on_prev_step = state_info['tags']
     chosen_tag_id = int(callback_query.data) - 1
     cur_tag = tags_on_prev_step[chosen_tag_id]
-    # заглушка
-    # await error_final(callback_query, f"попался в tags_search по тегу {cur_tag['name']}!")
     if 'sub_categories' in cur_tag:
         # не дошли до листа => ищем тег дальше
         new_tags = cur_tag['sub_categories']

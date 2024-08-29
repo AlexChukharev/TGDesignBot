@@ -2,21 +2,7 @@ from aiogram import types
 from aiogram.types import ReplyKeyboardMarkup, CallbackQuery
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.types import Message
 from utility.checkers import is_admin
-
-
-# Starting menu.
-def start_menu_kb(message: Message) -> ReplyKeyboardMarkup:
-    kb = ReplyKeyboardBuilder()
-    kb.button(text="Поиск материалов")
-
-    # kb.button(text="Стоп, а что ты умеешь?")
-    kb.button(text="Хочу дать обратную связь")
-    kb.adjust(1)
-    if is_admin(message.from_user.id):
-        kb.button(text="Админ-панель")
-    return kb.as_markup(resize_keyboard=True)
 
 
 def start_menu_kb_query(callback_query: CallbackQuery) -> ReplyKeyboardMarkup:
@@ -38,15 +24,15 @@ def rows_for_main_menu():
             callback_data='search_by_tags'
         )],
         [InlineKeyboardButton(
-            text='Шаблон презентаций',
+            text='Найти шаблон для презентаций',
             callback_data='pres_templates'
         )],
         [InlineKeyboardButton(
-            text='Корпоративные шрифты',
+            text='Скачать корпоративные шрифты',
             callback_data='fonts'
         )],
         [InlineKeyboardButton(
-            text='Нужен дизайнер',
+            text='Нужен дизайнер — поставить задачу',
             callback_data='designer'
         )],
         [InlineKeyboardButton(
@@ -57,41 +43,21 @@ def rows_for_main_menu():
     return rows
 
 
-async def main_menu_buttons_from_message(message: Message) -> InlineKeyboardMarkup:
-    rows = rows_for_main_menu()
-    if is_admin(message.from_user.id):
-        rows.append([
-            InlineKeyboardButton(
-                text='Админ-панель',
-                callback_data='new_admin_start'
-            )
-        ])
-    markup = InlineKeyboardMarkup(inline_keyboard=rows)
-    return markup
-
-
 async def main_menu_buttons_from_query(callback_query: CallbackQuery) -> InlineKeyboardMarkup:
     rows = rows_for_main_menu()
-    if is_admin(callback_query.from_user.id):
-        rows.append([
-            InlineKeyboardButton(
-                text='Админ-панель',
-                callback_data='new_admin_start'
-            )
-        ])
+    # if is_admin(callback_query.from_user.id):
+    #     rows.append([
+    #         InlineKeyboardButton(
+    #             text='Админ-панель',
+    #             callback_data='new_admin_start'
+    #         )
+    #     ])
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
 
 
 def only_main_menu_button_kb():
     kb = ReplyKeyboardBuilder()
-    kb.button(text="В главное меню")
-    return kb.as_markup(resize_keyboard=True)
-
-
-def main_menu_kb():
-    kb = ReplyKeyboardBuilder()
-    kb.button(text="Как установить шрифты?")
     kb.button(text="В главное меню")
     return kb.as_markup(resize_keyboard=True)
 
@@ -106,7 +72,7 @@ def main_menu_kb_query():
         ],
         [
             InlineKeyboardButton(
-                text='Вернуться к выбору материалов',
+                text='В главное меню',
                 # callback_data='menu_choose'
                 callback_data='start'
             )
@@ -114,17 +80,6 @@ def main_menu_kb_query():
     ]
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
-
-
-# Buttons with choosing categories.
-# def choose_category_kb() -> ReplyKeyboardMarkup:
-#     kb = ReplyKeyboardBuilder()
-#     kb.button(text="Шаблон презентаций")
-#     kb.button(text="Готовые слайды о компании")
-#     kb.button(text="Корпоративные шрифты")
-#     kb.button(text="В главное меню")
-#     kb.adjust(1)
-#     return kb.as_markup(resize_keyboard=True)
 
 
 async def choose_category_text(key_list: list) -> str:
@@ -139,39 +94,33 @@ async def choose_category_text(key_list: list) -> str:
 
 
 async def choose_template_text_inner(folder: str, key_list: list) -> str:
-    print(key_list)
+    # print(key_list)
     text = f"У нас есть несколько шаблонов для подразделения {folder}\nКакой тебе нужен?\n \n"
-
-    # counter = 1
-    # for key in key_list:
-    #     text += f"{counter}. {key} \n \n"
-    #     counter += 1
     return text
 
 
-async def choose_template_text_root(key_list: list) -> str:
-    print(key_list)
-    text = f"Для какого подразделения шаблон?\n"
+async def choose_template_text_root_for_templates(key_list: list) -> str:
+    # print(key_list)
+    text = f"Для какого подразделения нужен шаблон?\n"
+    return text
 
-    # counter = 1
-    # for key in key_list:
-    #     text += f"{counter}. {key} \n \n"
-    #     counter += 1
+
+async def choose_template_text_root_for_fonts(key_list: list) -> str:
+    # print(key_list)
+    text = f"У нас очень много шрифтов, какие тебе нужны?\n"
+    return text
+
+
+async def choose_template_text_root_for_tags(key_list: list) -> str:
+    # print(key_list)
+    text = f"Я подскажу варианты, как можно оформить твой контент!\n" \
+           f"Но для начала, подскажи, в каком шаблоне ты делаешь презентацию?\n"
     return text
 
 
 async def choose_one_file(key_list: list, paths_list: list) -> str:
     text = "Выберите один из файлов для установки \n \n"
     text += await key_list_with_paths(key_list, paths_list)
-    return text
-
-
-async def key_list_to_text(key_list: list) -> str:
-    text = ""
-    counter = 1
-    for key in key_list:
-        text += f"{counter}. {key} \n \n"
-        counter += 1
     return text
 
 
@@ -198,11 +147,6 @@ async def choose_tags_query(key_list: list) -> str:
 
 async def choose_category_callback(key_list: list, can_go_left: bool, can_go_right: bool,
                                    can_go_back: bool, file_type: str) -> InlineKeyboardMarkup:
-    # nums_for_choose = [InlineKeyboardButton(text=str(x), callback_data=str(x)) for x in
-    #                    range(1, key_list.__len__() + 1)]
-    # rows = [
-    #     nums_for_choose,
-    # ]
     rows = []
     counter = 1
     for elem in key_list:
@@ -213,6 +157,7 @@ async def choose_category_callback(key_list: list, can_go_left: bool, can_go_rig
             )
         ])
         counter += 1
+
     if can_go_left and can_go_right:
         rows.append([
             InlineKeyboardButton(
@@ -224,7 +169,6 @@ async def choose_category_callback(key_list: list, can_go_left: bool, can_go_rig
                 callback_data='next'
             )
         ])
-
     elif can_go_right:
         rows.append([
             InlineKeyboardButton(
@@ -239,20 +183,13 @@ async def choose_category_callback(key_list: list, can_go_left: bool, can_go_rig
                 callback_data='prev'
             )
         ])
+
     if can_go_back:
         rows.append(
             [InlineKeyboardButton(
-                text='В предыдущую директорию',
+                text='Назад',
                 callback_data='prev_dir'
             )])
-    # TODO убрать?
-    rows.append(
-        [
-            InlineKeyboardButton(
-                text='Показать все презентации',
-                callback_data='show_all_pres'
-            )
-        ])
     if file_type == 'font':
         rows.append(
             [InlineKeyboardButton(
@@ -262,8 +199,7 @@ async def choose_category_callback(key_list: list, can_go_left: bool, can_go_rig
     rows.append(
         [
             InlineKeyboardButton(
-                text='Вернуться к выбору материалов',
-                # callback_data='menu_choose'
+                text='В главное меню',
                 callback_data='start'
             )
         ]
@@ -283,7 +219,7 @@ async def choose_category_in_deadend_callback_for_fonts(can_go_back: bool) -> In
     if can_go_back:
         rows.append(
             [InlineKeyboardButton(
-                text='В предыдущую директорию',
+                text='Назад',
                 callback_data='prev_dir'
             )])
     rows.append(
@@ -299,25 +235,10 @@ async def choose_category_in_deadend_callback_for_fonts(can_go_back: bool) -> In
     return markup
 
 
-# Only for 'template'
-async def choose_category_in_deadend_callback_for_templates(can_go_back: bool) -> InlineKeyboardMarkup:
-    rows = []
-    rows.append(
-        [
-            InlineKeyboardButton(
-                text='В главное меню',
-                callback_data='menu_choose'
-            )
-        ]
-    )
-    markup = InlineKeyboardMarkup(inline_keyboard=rows)
-    return markup
-
-
 async def no_font() -> InlineKeyboardMarkup:
     rows = [
         [InlineKeyboardButton(
-            text='Вернуться к выбору материалов',
+            text='В главное меню',
             # callback_data='menu_choose'
             callback_data='start'
         )]
@@ -374,50 +295,6 @@ async def tags_buttons(tags: list) -> InlineKeyboardMarkup:
     return markup
 
 
-async def choose_category_template(key_list: list, can_go_left: bool, can_go_right: bool,
-                                   can_go_back: bool, file_type: str) -> ReplyKeyboardMarkup:
-    kb = ReplyKeyboardBuilder()
-    for elem in key_list:
-        kb.add(types.KeyboardButton(text=elem))
-    # kb.button(text="Показать все презентации")
-    if file_type == 'font':
-        kb.button(text='Забрать все шрифты')
-    if can_go_right:
-        kb.button(text="Далее")
-    if can_go_left:
-        kb.button(text="Назад")
-    if can_go_back:
-        kb.button(text="В предыдущую директорию")
-    kb.button(text="В главное меню")
-    kb.adjust(1)
-    return kb.as_markup(resize_keyboard=True)
-
-
-async def admin_choose_category_template(key_list: list, can_go_left: bool, can_go_right: bool,
-                                         can_go_back: bool, action: str) -> ReplyKeyboardMarkup:
-    kb = ReplyKeyboardBuilder()
-    for elem in key_list:
-        kb.add(types.KeyboardButton(text=elem))
-    kb.adjust(3)
-    print('admin_choose')
-    if action == 'delete':
-        # kb.button(text="Показать все презентации")
-        kb.adjust(1)
-    if action == 'add':
-        kb.button(text="Добавить сюда")
-        kb.adjust(1)
-    if can_go_right:
-        kb.button(text="Далее")
-    if can_go_left:
-        kb.button(text="Назад")
-    kb.adjust(2)
-    if can_go_back:
-        kb.button(text="В предыдущую директорию")
-    kb.button(text="В главное меню")
-    kb.adjust(1)
-    return kb.as_markup(resize_keyboard=True)
-
-
 async def admin_choose_category_template_query(key_list: list, can_go_left: bool,
                                                can_go_right: bool, can_go_back: bool,
                                                action: str) -> InlineKeyboardMarkup:
@@ -454,7 +331,7 @@ async def admin_choose_category_template_query(key_list: list, can_go_left: bool
     if can_go_back:
         rows.append(
             [InlineKeyboardButton(
-                text='В предыдущую директорию',
+                text='Назад',
                 callback_data='prev_dir'
             )])
     if action == 'add':
@@ -474,15 +351,6 @@ async def admin_choose_category_template_query(key_list: list, can_go_left: bool
             )])
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
-
-
-def admin_panel() -> ReplyKeyboardMarkup:
-    kb = ReplyKeyboardBuilder()
-    kb.button(text="Добавить материал")
-    kb.button(text="Удалить материал")
-    kb.button(text="В главное меню")
-    kb.adjust(1)
-    return kb.as_markup(resize_keyboard=True)
 
 
 def admin_panel_query() -> InlineKeyboardMarkup:

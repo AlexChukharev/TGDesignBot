@@ -12,7 +12,7 @@ from aiogram import types
 from aiogram.types import CallbackQuery
 import io
 import aiohttp
-from aiogram.enums import ParseMode, ChatAction
+from aiogram.enums import ChatAction
 from aiogram.utils.chat_action import ChatActionSender
 import urllib.request
 import os
@@ -190,18 +190,6 @@ async def send_big_file_query(callback_query: CallbackQuery, link, file_name):
         raise 'TelegramNetworkError'
 
 
-async def download_with_link(message: Message, link, file_name):
-    await message.bot.send_chat_action(
-        chat_id=message.chat.id,
-        action=ChatAction.UPLOAD_DOCUMENT,
-    )
-    async with ChatActionSender.upload_document(
-        bot=message.bot,
-        chat_id=message.chat.id,
-    ):
-        await send_big_file(message, link, file_name)
-
-
 async def download_with_link_query(callback_query: CallbackQuery, link, file_name):
     await callback_query.bot.send_chat_action(
         chat_id=callback_query.message.chat.id,
@@ -214,15 +202,6 @@ async def download_with_link_query(callback_query: CallbackQuery, link, file_nam
         await send_big_file_query(callback_query, link, file_name)
 
 
-async def send_file_from_local(message: Message, path, filename):
-    await message.reply_document(
-        document=types.FSInputFile(
-            path=path,
-            filename=filename
-        )
-    )
-
-
 async def send_file_from_local_for_query(callback_query: CallbackQuery, path, filename):
     await send_document.SendDocument(
         chat_id=callback_query.message.chat.id,
@@ -231,28 +210,6 @@ async def send_file_from_local_for_query(callback_query: CallbackQuery, path, fi
             filename=filename
         )
     ).as_(callback_query.bot)
-
-
-# async def send_zips(message: (Message, CallbackQuery), list_data):
-#     for_zip_path = f'Data/forZip'
-#     user_zip_path = for_zip_path + '/' + f'{message.from_user.id}'
-#     archive_name = f'{message.from_user.id}.zip'
-#     path_to_zip = for_zip_path + '/' + archive_name
-#     try:
-#         os.mkdir(user_zip_path)
-#         for file in list_data:
-#             link = get_download_link(file[1] + '/' + file[3])
-#             urllib.request.urlretrieve(link, user_zip_path + f'/{file[3]}.zip')
-#         merge_fonts(user_zip_path, path_to_zip)
-#         await send_file_from_local(message, path_to_zip, 'Fonts.zip')
-#     except:
-#         await message.answer(
-#             text=f'Извините, возникла техническая ошибка. Сообщите нам: '
-#                  f'{json.load(open("./config.json"))["owner"]} и '
-#                  'попробуйте позже')
-#
-#     shutil.rmtree(user_zip_path)
-#     os.remove(path_to_zip)
 
 
 async def send_zips_for_query(callback_query: CallbackQuery, list_data):
@@ -276,39 +233,17 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data):
         await send_file_from_local_for_query(callback_query, path_to_zip, 'Fonts.zip')
     except:
         await callback_query.answer(
-            text=f'Извините, возникла техническая ошибка. Сообщите нам: '
-                  f'{json.load(open("./config.json"))["owner"]} или попробуйте позже'
+            text=f'Что-то пошло не так :( Сообщи '
+                  f'{json.load(open("./config.json"))["owner"]} или попробуй позже'
         )
     shutil.rmtree(user_zip_path)
     os.remove(path_to_zip)
 
 
+# TODO ???
 # Enter the reply message, the path on Yadisk, and the local path
 # to download the files so that the bot sends the user the
 # correct files
-# async def start_send_fonts(message: Message, YDpath):
-#     list_fonts = get_fonts_from_child_directories(YDpath)
-#     if len(list_fonts) == 0:
-#         await message.answer(
-#             text='По данному запросу не найдено ни одного шрифта!'
-#         )
-#     try:
-#         await message.bot.send_chat_action(
-#             chat_id=message.chat.id,
-#             action=ChatAction.UPLOAD_DOCUMENT,
-#         )
-#     except:
-#         print('Error')
-#     try:
-#         async with ChatActionSender.upload_document(
-#             bot=message.bot,
-#             chat_id=message.chat.id,
-#         ):
-#             await send_zips(message, list_fonts)
-#     except:
-#         print('Error')
-
-
 async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath):
     list_fonts = get_fonts_from_child_directories(YDpath)
     if len(list_fonts) == 0:
@@ -367,22 +302,6 @@ def merge_fonts(input_folder, output_zip):
                                         )
                                     except:
                                         print('Cant add font to zip')
-
-
-async def choose_message_from_type_file(message: Message, state: FSMContext, reply_markup):
-    user_info = await state.get_data()
-    type_file = user_info['type_file']
-
-    if type_file in ['template', 'slide']:
-        await message.answer(
-            text="Выберите один из файлов",
-            reply_markup=reply_markup
-        )
-    elif type_file == 'font':
-        await message.answer(
-            text="Выберите презентацию из которой хотите получить ширфты",
-            reply_markup=reply_markup
-        )
 
 
 async def choose_message_from_type_file_query(callback_query: CallbackQuery, state: FSMContext, reply_markup, text):
