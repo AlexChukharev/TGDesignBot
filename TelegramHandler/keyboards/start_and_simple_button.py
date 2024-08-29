@@ -40,7 +40,21 @@ async def main_menu_buttons_from_query() -> InlineKeyboardMarkup:
     return markup
 
 
-def main_menu_kb_query():
+def get_fonts_buttons() -> InlineKeyboardMarkup:
+    rows = [
+        [
+            InlineKeyboardButton(
+                text='Получить шрифты',
+                callback_data='get_fonts'
+            )
+        ],
+        row_back_to_main_menu()
+    ]
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+
+def how_to_install_fonts_buttons():
     rows = [
         [
             InlineKeyboardButton(
@@ -54,25 +68,19 @@ def main_menu_kb_query():
     return markup
 
 
-async def choose_template_text_inner(folder: str, key_list: list) -> str:
+async def choose_template_text_inner(folder: str) -> str:
     text = f"У нас есть несколько шаблонов для подразделения {folder}\nКакой тебе нужен?\n \n"
     return text
 
 
-async def choose_template_text_root_for_templates(key_list: list) -> str:
-    text = f"Для какого подразделения нужен шаблон?\n"
-    return text
-
-
-async def choose_template_text_root_for_fonts(key_list: list) -> str:
-    text = f"У нас очень много шрифтов, какие тебе нужны?\n"
-    return text
-
-
-async def choose_template_text_root_for_tags(key_list: list) -> str:
-    text = f"Я подскажу варианты, как можно оформить твой контент!\n" \
+async def choose_template_text_root(type_file: str) -> str:
+    if type_file == 'template':
+        return f"Для какого подразделения нужен шаблон?\n"
+    if type_file == 'font':
+        return f"У нас очень много шрифтов, для какого подразделения ты ищешь?\n"
+    if type_file == 'search_by_tags':
+        return f"Я подскажу варианты, как можно оформить твой контент!\n" \
            f"Но для начала, подскажи, в каком шаблоне ты делаешь презентацию?\n"
-    return text
 
 
 async def choose_one_file(key_list: list, paths_list: list) -> str:
@@ -87,17 +95,6 @@ async def key_list_with_paths(key_list: list, path_list: list) -> str:
     for elem_num in range(len(key_list)):
         text += f"{counter}. {key_list[elem_num]} \n"
         text += f"Путь: {path_list[elem_num]} \n \n"
-        counter += 1
-    return text
-
-
-async def choose_tags_query(key_list: list) -> str:
-    print(key_list)
-    text = ""
-
-    counter = 1
-    for key in key_list:
-        text += f"{counter}. {key} \n \n"
         counter += 1
     return text
 
@@ -200,5 +197,57 @@ async def tags_buttons(tags: list) -> InlineKeyboardMarkup:
             )
         ])
         counter += 1
+    rows.append(row_back_to_main_menu())
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
+
+
+async def choose_file_kb_query(key_list: list, can_go_left: bool, can_go_right: bool) -> InlineKeyboardMarkup:
+    rows = await choose_file_kb_query_handler(key_list, can_go_left, can_go_right)
+    rows.append([
+        InlineKeyboardButton(
+            text='В главное меню',
+            callback_data='start'
+        )
+    ])
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+
+async def choose_file_kb_query_handler(key_list: list, can_go_left: bool, can_go_right: bool) -> list:
+    nums_for_choose = [
+        InlineKeyboardButton(
+            text=str(x),
+            callback_data=str(x)
+        ) for x in range(1, key_list.__len__() + 1)
+    ]
+    rows = [
+        nums_for_choose,
+    ]
+    if (can_go_left and can_go_right):
+        rows.append([
+            InlineKeyboardButton(
+                text='⬅Назад',
+                callback_data='prev'
+            ),
+            InlineKeyboardButton(
+                text='Далее➡',
+                callback_data='next'
+            )
+        ])
+
+    elif (can_go_right):
+        rows.append([
+            InlineKeyboardButton(
+                text='Далее➡',
+                callback_data='next'
+            )
+        ])
+    elif (can_go_left):
+        rows.append([
+            InlineKeyboardButton(
+                text='⬅Назад',
+                callback_data='prev'
+            )
+        ])
+    return rows

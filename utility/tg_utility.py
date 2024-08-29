@@ -300,19 +300,3 @@ def merge_fonts(input_folder, output_zip):
                                         )
                                     except:
                                         print('Cant add font to zip')
-
-
-async def choose_message_from_type_file_query(callback_query: CallbackQuery, state: FSMContext, reply_markup, text):
-    user_info = await state.get_data()
-    type_file = user_info['type_file']
-
-    if type_file in ['template', 'slide']:
-        await callback_query.message.edit_text(
-            text="Выберите один из файлов \n \n" + text,
-            reply_markup=reply_markup
-        )
-    elif type_file == 'font':
-        await callback_query.message.edit_text(
-            text="Выберите презентацию из которой хотите получить ширфты \n \n" + text,
-            reply_markup=reply_markup
-        )

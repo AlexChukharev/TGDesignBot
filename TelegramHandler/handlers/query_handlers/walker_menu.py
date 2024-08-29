@@ -12,7 +12,6 @@ from utility.tg_utility import (
     from_button_to_file, change_state_to_tags,
     set_file_type,
     start_send_fonts_for_query,
-    choose_message_from_type_file_query,
     can_go_left as check_left,
     can_go_back as check_back,
     update_data as update_user_info,
@@ -25,15 +24,13 @@ from utility.tg_utility import (
 
 from ...keyboards.start_and_simple_button import (
     choose_template_text_inner,
-    choose_template_text_root_for_templates,
+    choose_template_text_root,
     choose_category_callback,
     go_back_to_main_menu,
     tags_buttons,
-    key_list_with_paths,
-    choose_category_in_deadend_callback_for_fonts, choose_template_text_root_for_fonts,
-    choose_template_text_root_for_tags
+    choose_category_in_deadend_callback_for_fonts
 )
-from ...keyboards.choose_file_keyboard import download_file_query, choose_file_kb_query
+from ...keyboards import get_fonts_buttons, choose_file_kb_query
 
 from Tree.ClassTree import Tree
 
@@ -81,8 +78,8 @@ async def error_final(callback_query: CallbackQuery, text: str):
         reply_markup=reply_markup
     )
 
+
 @router.callback_query(F.data == "pres_templates")
-# @router.callback_query(F.data == "slides")
 @router.callback_query(F.data == "fonts")
 @router.callback_query(F.data == "search_by_tags")
 async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext) -> None:
@@ -113,13 +110,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
         False,
         type_file
     )
-    text = ''
-    if type_file == 'template':
-        text = await choose_template_text_root_for_templates(child_list[indx_list_start:indx_list_end])
-    elif type_file == 'font':
-        text = await choose_template_text_root_for_fonts(child_list[indx_list_start:indx_list_end])
-    elif type_file == 'search_by_tags':
-        text = await choose_template_text_root_for_tags(child_list[indx_list_start:indx_list_end])
+    text = await choose_template_text_root(type_file)
 
     await callback_query.message.edit_text(
         text=text,
@@ -157,7 +148,7 @@ async def paginate_template_find(callback_query: CallbackQuery, state: FSMContex
         can_go_back,
         type_file
     )
-    text = await choose_template_text_inner(path[-1], child_list[indx_list_start:indx_list_end])
+    text = await choose_template_text_inner(path[-1])
 
     await callback_query.message.edit_text(
         text=text,
@@ -209,9 +200,9 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
         type_file
     )
     if parent_name == 'root':
-        text = await choose_template_text_root_for_templates(child_list[indx_list_start:indx_list_end])
+        text = await choose_template_text_root(type_file)
     else:
-        text = await choose_template_text_inner(tree.get_parent(cur_node_name), child_list[indx_list_start:indx_list_end])
+        text = await choose_template_text_inner(tree.get_parent(cur_node_name))
 
     await callback_query.message.edit_text(
         text=text,
@@ -344,8 +335,6 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
             text=error_text,
-            # text=f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']}, "
-            #      f"или попробуй позже",
             reply_markup=reply_markup
         )
         return
@@ -357,7 +346,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         )
         try:
             await download_with_link_query(callback_query, link, file_name)
-            reply_markup = download_file_query()
+            reply_markup = get_fonts_buttons()
             await callback_query.message.delete()
             await callback_query.bot.send_message(
                 chat_id=callback_query.from_user.id,
@@ -375,7 +364,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
                 reply_markup=reply_markup
             )
     else:
-        reply_markup = download_file_query()
+        reply_markup = get_fonts_buttons()
         await callback_query.message.delete()
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
@@ -397,56 +386,6 @@ async def finish_fonts_search(callback_query: CallbackQuery, state: FSMContext, 
         )
     else:
         await error_final(callback_query, error_text)
-
-
-@router.callback_query(WalkerState.choose_button, F.data == "show_all_pres")
-async def show_all_pres_template_find(callback_query: CallbackQuery, state: FSMContext):
-    config = await load_config()
-    dist_indx = config['dist']
-    user_info = await state.get_data()
-    path = user_info['path']
-
-    indx_list_start = 0
-    indx_list_end = indx_list_start + dist_indx
-
-    files_list = await get_list_of_files(state)
-    file_name_list = [files_list[i][2] for i in range(len(files_list))]
-    list_paths = [files_list[i][1] for i in range(len(files_list))]
-
-    can_go_right = await check_right(indx_list_end, len(file_name_list))
-    can_go_left = await check_left(indx_list_start)
-
-    if file_name_list:
-        reply_markup = await choose_file_kb_query(
-            file_name_list[indx_list_start:indx_list_end],
-            can_go_left,
-            can_go_right
-        )
-        text = await key_list_with_paths(
-            file_name_list[indx_list_start:indx_list_end],
-            list_paths[indx_list_start:indx_list_end]
-        )
-        await from_button_to_file(state, files_list, file_name_list, WalkerState.choose_file, list_paths)
-        await choose_message_from_type_file_query(callback_query, state, reply_markup, text)
-    else:
-        child_list = user_info['child_list']
-        type_file = user_info['type_file']
-        can_go_back = await check_back(path)
-
-        reply_markup = await choose_category_callback(
-            child_list[indx_list_start:indx_list_end],
-            can_go_left,
-            can_go_right,
-            can_go_back,
-            type_file
-        )
-
-        await callback_query.message.delete()
-        await callback_query.bot.send_message(
-            chat_id=callback_query.message.chat.id,
-            text='В данной папке ничего нет!',
-            reply_markup=reply_markup
-        )
 
 
 @router.callback_query(WalkerState.choose_button, F.data == "get_fonts_from_all_pres")
@@ -521,5 +460,5 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
             can_go_back,
             type_file
         )
-        text = await choose_template_text_inner(path[-1], child_list[indx_list_start:indx_list_end])
+        text = await choose_template_text_inner(path[-1])
         await callback_query.message.edit_text(text=text, reply_markup=reply_markup)
