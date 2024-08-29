@@ -4,10 +4,8 @@ from aiogram.exceptions import TelegramNetworkError
 from aiogram.methods import send_document
 
 from DBHandler import (get_templates_from_child_directories,
-                                   get_fonts_from_child_directories,
-                                   get_images_from_child_directories)
+                                   get_fonts_from_child_directories)
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
 from aiogram import types
 from aiogram.types import CallbackQuery
 import io
@@ -19,7 +17,7 @@ import os
 import shutil
 import zipfile
 
-from TelegramHandler.keyboards import no_font, go_back_to_main_menu
+from TelegramHandler.keyboards import go_back_to_main_menu
 from YandexDisk import get_download_link
 
 
@@ -248,7 +246,7 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath):
     list_fonts = get_fonts_from_child_directories(YDpath)
     if len(list_fonts) == 0:
         print('expected fonts dont found')
-        reply_markup = await no_font()
+        reply_markup = await go_back_to_main_menu()
         await callback_query.message.edit_text(
             text='По данному запросу не найдено ни одного шрифта!',
             reply_markup=reply_markup

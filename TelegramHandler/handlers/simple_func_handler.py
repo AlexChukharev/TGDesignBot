@@ -6,7 +6,7 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery
 
-from TelegramHandler.keyboards import go_back_to_main_menu, back_to_start
+from TelegramHandler.keyboards import go_back_to_main_menu
 
 router = Router()
 
@@ -29,7 +29,7 @@ async def cmd_feedback(message: Message):
 
 @router.callback_query(F.data == "bot_feedback")
 async def cmd_feedback(callback_query: CallbackQuery):
-    reply_markup = await back_to_start()
+    reply_markup = await go_back_to_main_menu()
     text = f"По любым проблемам с ботом или материалами пиши {json.load(open('./config.json'))['owner']}"
     await callback_query.message.edit_text(
         text=text,

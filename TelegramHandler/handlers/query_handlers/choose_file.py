@@ -11,15 +11,18 @@ from utility.tg_utility import can_go_right as check_right, \
 from utility.tg_utility import can_go_left as check_left
 from utility.tg_utility import update_indx as update_user_indx
 
-from DBHandler import (get_fonts_by_template_id,
-                                   get_all_tags_by_template_id,
-                                   get_slides_by_tags_and_template_id,
-                                   get_templates_by_index, delete_template, get_template_id_by_name)
+from DBHandler import (
+    get_fonts_by_template_id,
+    get_slides_by_tags_and_template_id,
+    get_templates_by_index,
+    delete_template,
+    get_template_id_by_name
+)
 
 from YandexDisk.YaDiskInfo import TemplateInfo
 from YandexDisk import get_download_link, get_file_size
 
-from ...keyboards import choose_category_text, go_back_to_main_menu, main_menu_kb_query, choose_tags_query, \
+from ...keyboards import go_back_to_main_menu, main_menu_kb_query, choose_tags_query, \
     choose_one_file
 from ...keyboards.choose_file_keyboard import choose_file_kb_query, download_file_query, work_with_tags_query
 
@@ -464,35 +467,6 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
             )
             pass
 
-        if type_file == 'slide':
-            await state.clear()
-            await state.set_state(WalkerState.choose_tags)
-
-            list_tags = get_all_tags_by_template_id(file_id)
-            try:
-                list_tags.remove('')
-            except:
-                print('No empty tags')
-            await state.update_data(list_tags=list_tags)
-            await state.update_data(user_tags=[])
-            await state.update_data(file_id=file_id)
-
-            indx_list_start = 0
-            indx_list_end = indx_list_start + dist_index
-            can_go_right = await check_right(indx_list_end, len(list_tags))
-            can_go_left = await check_left(indx_list_start)
-            await state.update_data(indx_list_start=indx_list_start)
-            await state.update_data(indx_list_end=indx_list_end)
-
-            await update_user_indx(state, indx_list_start, indx_list_end)
-
-            reply_markup = await work_with_tags_query(list_tags[indx_list_start:indx_list_end], can_go_left,
-                                                      can_go_right, state)
-            text = await choose_category_text(list_tags[indx_list_start:indx_list_end])
-            await callback_query.message.edit_text(
-                text="Введите ваши теги через ';' или Выберите их из предложенных ниже \n \n" + text,
-                reply_markup=reply_markup
-            )
         if type_file == 'font':
             font_name = get_fonts_by_template_id(file_id)
             if len(font_name) == 0:

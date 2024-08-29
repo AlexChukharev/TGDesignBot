@@ -11,11 +11,6 @@ from TelegramHandler.handlers import (simple_func_handler,
                                                   no_handled)
 from TelegramHandler.handlers.query_handlers import walker_menu as q_walker_menu
 from TelegramHandler.handlers.query_handlers import choose_file as q_choose_file
-from TelegramHandler.handlers.query_handlers import admin_menu_handler as q_admin_menu_handler
-from TelegramHandler.handlers.query_handlers import \
-    admin_choose_file_for_delete as q_admin_choose_file_for_delete
-from TelegramHandler.handlers.query_handlers import admin_add as q_admin_add
-from TelegramHandler.handlers.query_handlers import admin_delete as q_admin_delete
 
 
 async def setup_bot_commands(bot: Bot):
@@ -37,11 +32,6 @@ async def main():
     dp.include_routers(
         # главное меню
         main_menu_handler.router,
-        # админские команды
-        q_admin_menu_handler.router,
-        q_admin_add.router,
-        q_admin_delete.router,
-        q_admin_choose_file_for_delete.router,
         # поиск материалов
         q_walker_menu.router,
         q_choose_file.router,
