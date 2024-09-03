@@ -10,7 +10,7 @@ from aiogram import types
 from aiogram.types import CallbackQuery
 import io
 import aiohttp
-from aiogram.enums import ChatAction
+from aiogram.enums import ChatAction, ParseMode
 from aiogram.utils.chat_action import ChatActionSender
 import urllib.request
 import os
@@ -210,7 +210,7 @@ async def send_file_from_local_for_query(callback_query: CallbackQuery, path, fi
     ).as_(callback_query.bot)
 
 
-async def send_zips_for_query(callback_query: CallbackQuery, list_data):
+async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name: str):
     for_zip_path = f'Data/forZip'
     user_zip_path = for_zip_path + '/' + f'{callback_query.from_user.id}'
     archive_name = f'{callback_query.from_user.id}.zip'
@@ -228,7 +228,7 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data):
                 print('error while reading url')
                 print(X)
         merge_fonts(user_zip_path, path_to_zip)
-        await send_file_from_local_for_query(callback_query, path_to_zip, 'Fonts.zip')
+        await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name}_fonts.zip')
     except:
         await callback_query.answer(
             text=f'Что-то пошло не так :( Сообщи '
@@ -242,7 +242,7 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data):
 # Enter the reply message, the path on Yadisk, and the local path
 # to download the files so that the bot sends the user the
 # correct files
-async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath):
+async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_name: str):
     list_fonts = get_fonts_from_child_directories(YDpath)
     if len(list_fonts) == 0:
         print('expected fonts dont found')
@@ -265,7 +265,7 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath):
             bot=callback_query.bot,
             chat_id=callback_query.message.chat.id,
         ):
-            await send_zips_for_query(callback_query, list_fonts)
+            await send_zips_for_query(callback_query, list_fonts, zip_name)
     except:
         # TODO обработать ошибки
         print('Error')
@@ -300,3 +300,18 @@ def merge_fonts(input_folder, output_zip):
                                         )
                                     except:
                                         print('Cant add font to zip')
+
+
+async def error_text():
+    return f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']} или попробуй позже"
+
+
+async def error_final(callback_query: CallbackQuery, text: str):
+    reply_markup = await go_back_to_main_menu()
+    await callback_query.message.delete()
+    await callback_query.bot.send_message(
+        chat_id=callback_query.from_user.id,
+        text=text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
+    )
