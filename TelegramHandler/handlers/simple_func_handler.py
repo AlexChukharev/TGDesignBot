@@ -11,7 +11,6 @@ from TelegramHandler.keyboards import go_back_to_main_menu
 router = Router()
 
 
-# @router.message(F.text.lower() == "стоп, а что ты умеешь?")
 @router.message(Command("actions"))
 async def cmd_help(message: Message):
     await message.answer(

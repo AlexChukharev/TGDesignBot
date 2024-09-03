@@ -1,8 +1,8 @@
 import json
-from telegram.constants import ParseMode
 import pickle
 
 from aiogram import F, Router
+from aiogram.enums import ParseMode
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -19,7 +19,7 @@ from utility.tg_utility import (
     get_list_of_files as get_list_of_files,
     download_with_link_query,
     can_go_right as check_right,
-    send_file_from_local_for_query
+    send_file_from_local_for_query, error_final, error_text
 )
 
 from ...keyboards.start_and_simple_button import (
@@ -30,7 +30,7 @@ from ...keyboards.start_and_simple_button import (
     tags_buttons,
     choose_category_in_deadend_callback_for_fonts
 )
-from ...keyboards import get_fonts_buttons, choose_file_kb_query
+from ...keyboards import get_fonts_buttons
 
 from Tree.ClassTree import Tree
 
@@ -47,7 +47,6 @@ from DBHandler import (
 from pptxHandler import get_template_of_slides, SlideInfo, remove_template
 
 router = Router()
-error_text = f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']} или попробуй позже"
 
 
 class WalkerState(StatesGroup):
@@ -66,17 +65,6 @@ async def load_config():
 
 async def load_tree() -> Tree:
     return pickle.load(open("./Tree/ObjectTree.pkl", "rb"))
-
-
-async def error_final(callback_query: CallbackQuery, text: str):
-    reply_markup = await go_back_to_main_menu()
-    await callback_query.message.delete()
-    await callback_query.bot.send_message(
-        chat_id=callback_query.from_user.id,
-        text=text,
-        parse_mode=ParseMode.HTML,
-        reply_markup=reply_markup
-    )
 
 
 @router.callback_query(F.data == "pres_templates")
@@ -221,7 +209,8 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
             tags = json.load(tags_file)
     except:
         print('error while reading tags_tree.json')
-        await error_final(callback_query, error_text)
+        text = await error_text()
+        await error_final(callback_query, text)
         return
     await change_state_to_tags(state, WalkerState.tags_search, files_list, [file_name], [file_path], tags)
 
@@ -235,12 +224,12 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
     )
 
 
-# TODO
 async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, tag: str):
     # данные по шаблону
     files_list = await get_list_of_files(state)
     if not files_list:
-        await error_final(callback_query, error_text)
+        text = await error_text()
+        await error_final(callback_query, text)
         return
     template_id = files_list[0][0]
     template_name = files_list[0][2]
@@ -275,6 +264,7 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
         print('err2')
 
     reply_markup = await go_back_to_main_menu()
+    await callback_query.message.delete()
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text="Готово! Надеюсь, эти варианты тебе помогут",
@@ -307,14 +297,16 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
         else:
             # такого вообще не должно быть
             print('error in tags_search while getting tag')
-            await error_final(callback_query, error_text)
+            text = await error_text()
+            await error_final(callback_query, text)
 
 
 # TODO описание
 async def finish_template_search(callback_query: CallbackQuery, state: FSMContext):
     files_list = await get_list_of_files(state)
     if not files_list:
-        await error_final(callback_query, error_text)
+        text = await error_text()
+        await error_final(callback_query, text)
         return
     file_name = files_list[0][2]
     file_path = files_list[0][1]
@@ -332,9 +324,10 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         template_id = get_template_id_by_name(template_info.path, template_info.name)
         delete_template(template_id)
         await callback_query.message.delete()
+        text = await error_text()
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
-            text=error_text,
+            text=text,
             reply_markup=reply_markup
         )
         return
@@ -342,29 +335,23 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     # TODO перенести отправку в отдельную функцию
     if file_size_in_limit(file_size):
         await callback_query.message.edit_text(
-            text="Дождитесь пока файл загрузится..."
+            text=f'Супер, отправляю! Это займет минутку'
         )
         try:
             await download_with_link_query(callback_query, link, file_name)
-            reply_markup = get_fonts_buttons()
+            reply_markup = await get_fonts_buttons()
             await callback_query.message.delete()
             await callback_query.bot.send_message(
                 chat_id=callback_query.from_user.id,
-                text="Ваш файл успешно загружен!",
+                text="Держи файл! И не забудь проверить, что у тебя есть корпоративные шрифты",
                 reply_markup=reply_markup
             )
-
         except:
-            reply_markup = await go_back_to_main_menu()
-            await callback_query.message.delete()
-            await callback_query.bot.send_message(
-                chat_id=callback_query.from_user.id,
-                text=f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']}, "
-                     f"или попробуй позже",
-                reply_markup=reply_markup
-            )
+            text = await error_text()
+            await error_final(callback_query, text)
+            return
     else:
-        reply_markup = get_fonts_buttons()
+        reply_markup = await get_fonts_buttons()
         await callback_query.message.delete()
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
@@ -385,7 +372,8 @@ async def finish_fonts_search(callback_query: CallbackQuery, state: FSMContext, 
             reply_markup=reply_markup
         )
     else:
-        await error_final(callback_query, error_text)
+        text = await error_text()
+        await error_final(callback_query, text)
 
 
 @router.callback_query(WalkerState.choose_button, F.data == "get_fonts_from_all_pres")
@@ -393,21 +381,43 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
     user_info = await state.get_data()
     files_list = await get_list_of_files(state)
     path = '/'.join(user_info['path'][1:])
+    zip_name = ''
     try:
         if len(files_list) == 1:
-            # TODO добавить название шаблона и выделить его жирным
-            await callback_query.message.edit_text(text=f"Отправляю шрифты для {files_list[0][2]}, секунду...")
+            if files_list[0][2] == 'fonts':
+                await callback_query.message.edit_text(
+                    text=f"Отправляю шрифты для всех наших презентаций, секунду...",
+                    parse_mode=ParseMode.HTML
+                )
+                zip_name = 'all'
+            else:
+                await callback_query.message.edit_text(
+                    text=f"Отправляю шрифты для <b>{files_list[0][2]}</b>, секунду...",
+                    parse_mode=ParseMode.HTML
+                )
+                zip_name = files_list[0][2]
         else:
-            # TODO + жир
-            await callback_query.message.edit_text(text=f"Отправляю шрифты для {user_info['path'][-1]}, секунду...")
+            if user_info['path'][-1] == 'fonts':
+                await callback_query.message.edit_text(
+                    text=f"Отправляю шрифты для всех наших презентаций, секунду...",
+                    parse_mode=ParseMode.HTML
+                )
+                zip_name = 'all'
+            else:
+                await callback_query.message.edit_text(
+                    text=f"Отправляю шрифты для <b>{user_info['path'][-1]}</b>, секунду...",
+                    parse_mode=ParseMode.HTML
+                )
+                zip_name = user_info['path'][-1]
     except:
         print('Proxy error')
     try:
-        await start_send_fonts_for_query(callback_query, path)
+        await start_send_fonts_for_query(callback_query, path, zip_name)
     except:
         return
     try:
         reply_markup = await go_back_to_main_menu()
+        await callback_query.message.delete()
         await callback_query.bot.send_message(
             chat_id=callback_query.message.chat.id,
             text='Готово!',
@@ -446,8 +456,6 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
         if type_file == 'font':
             await finish_fonts_search(callback_query, state, can_go_back, files_list)
         if type_file == 'template':
-            # TODO! отправить текст перед отправкой
-            text = f'Супер, отправляю! Это займет минутку'
             await finish_template_search(callback_query, state)
         if type_file == 'search_by_tags':
             await start_tags_search(callback_query, state, files_list)
