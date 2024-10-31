@@ -67,9 +67,19 @@ async def load_tree() -> Tree:
     return pickle.load(open("./Tree/ObjectTree.pkl", "rb"))
 
 
+def get_disk_folder_name(query_type: str) -> str:
+    if query_type in ['pres_templates', 'fonts']:
+        return 'Шаблоны'
+    if query_type == 'search_by_tags':
+        return 'Advanced'
+    if query_type == 'about_company':
+        return 'Слайды о компании'
+
+
 @router.callback_query(F.data == "pres_templates")
 @router.callback_query(F.data == "fonts")
 @router.callback_query(F.data == "search_by_tags")
+@router.callback_query(F.data == "about_company")
 async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext) -> None:
     tree = await load_tree()
     config = await load_config()
@@ -79,7 +89,16 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     await state.set_state(WalkerState.choose_button)
     type_file = await set_file_type(callback_query.data, state)
 
-    child_list = tree.get_children(tree.root.name)
+    root_child_list = tree.get_children(tree.root.name)
+    path = [callback_query.data]
+
+    indx_child = 0
+    for child in root_child_list:
+        if child == get_disk_folder_name(callback_query.data):
+            break
+        indx_child += 1
+    path.append(root_child_list[indx_child])
+    child_list = tree.get_children(root_child_list[indx_child])
 
     indx_list_start = 0
     indx_list_end = indx_list_start + dist_indx
@@ -87,7 +106,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     can_go_right = await check_right(indx_list_end, len(child_list))
     can_go_left = await check_left(indx_list_start)
 
-    path = [callback_query.data]
+
     await state.update_data(file_name_list=[])
     await update_user_info(state, path, 0, indx_list_end, False, child_list)
 
@@ -459,6 +478,8 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
             await finish_template_search(callback_query, state)
         if type_file == 'search_by_tags':
             await start_tags_search(callback_query, state, files_list)
+        if type_file == 'about_company':
+            await finish_template_search(callback_query, state)
 
     else:
         reply_markup = await choose_category_callback(

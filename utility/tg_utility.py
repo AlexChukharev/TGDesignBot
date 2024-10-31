@@ -132,9 +132,9 @@ async def set_file_type(type_file: str, state: FSMContext) -> str:
     elif type_file in ("Корпоративные шрифты", "fonts"):
         await state.update_data(type_file='font')
         return 'font'
-    # elif type_file in ("Готовые слайды о компании", "slides"):
-    #     await state.update_data(type_file='slide')
-    #     return 'slide'
+    elif type_file in ("Готовые слайды о компании", "about_company"):
+        await state.update_data(type_file='about_company')
+        return 'about_company'
     elif type_file == "search_by_tags":
         await state.update_data(type_file='search_by_tags')
         return 'search_by_tags'

@@ -4,16 +4,20 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 def rows_for_main_menu():
     rows = [
         [InlineKeyboardButton(
-            text='Не получается сделать слайд, помоги',
-            callback_data='search_by_tags'
-        )],
-        [InlineKeyboardButton(
             text='Найти шаблон для презентаций',
             callback_data='pres_templates'
         )],
         [InlineKeyboardButton(
+            text='Получить готовые слайды о компании',
+            callback_data='about_company'
+        )],
+        [InlineKeyboardButton(
             text='Скачать корпоративные шрифты',
             callback_data='fonts'
+        )],
+        [InlineKeyboardButton(
+            text='[BETA] Придумать дизайн',
+            callback_data='search_by_tags'
         )],
         [InlineKeyboardButton(
             text='Нужен дизайнер — поставить задачу',
@@ -104,8 +108,9 @@ async def choose_template_text_root(type_file: str) -> str:
         return f"У нас очень много шрифтов — тебе для какого подразделения нужны?\n"
     if type_file == 'search_by_tags':
         return f"Я подскажу варианты, как можно оформить твой контент!\n" \
-           f"Расскажи, какой слайд нужен?\n"
-           # f"Но для начала, подскажи, в каком шаблоне ты делаешь презентацию?\n"
+           f"Но для начала, подскажи, в каком шаблоне ты делаешь презентацию?\n"
+    if type_file == 'about_company':
+        return f"У меня подготовлены слайды на двух языках — тебе какие нужны?"
 
 
 # async def choose_one_file(key_list: list, paths_list: list) -> str:
@@ -129,6 +134,7 @@ async def choose_category_callback(key_list: list, can_go_left: bool, can_go_rig
     rows = []
     counter = 1
     for elem in key_list:
+        # if not(elem in ['Готовые структуры', 'Advanced']):
         rows.append([
             InlineKeyboardButton(
                 text=elem,

@@ -41,7 +41,7 @@ async def cmd_feedback(callback_query: CallbackQuery):
 async def cmd_feedback(callback_query: CallbackQuery):
     reply_markup = await go_back_to_main_menu()
     link = "https://forms.yandex-team.ru/surveys/VISCOMMS/"
-    text = f"Заполни форму по <a href='{link}'>ссылке</a>"
+    text = f"Заполни форму по <a href='{link}'>ссылке</a>, чтобы поставить задачу дизайнерам"
     await callback_query.message.edit_text(
         text=text,
         parse_mode=ParseMode.HTML,
