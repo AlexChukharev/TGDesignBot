@@ -446,7 +446,7 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
         print('Proxy error')
 
 
-@router.callback_query(WalkerState.choose_button)
+@router.callback_query(WalkerState.choose_button, F.data != "install_fonts_help")
 async def navigate_template_find(callback_query: CallbackQuery, state: FSMContext):
     tree = await load_tree()
     config = await load_config()
