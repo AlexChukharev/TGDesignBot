@@ -130,6 +130,7 @@ async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(WalkerState.choose_file, F.data == "install_fonts_help")
+@router.callback_query(WalkerState.choose_button, F.data == "install_fonts_help")
 async def send_info(callback_query: CallbackQuery):
     try:
         await callback_query.message.edit_text(
