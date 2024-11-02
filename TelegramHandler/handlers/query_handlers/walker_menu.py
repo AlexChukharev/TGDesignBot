@@ -30,7 +30,7 @@ from ...keyboards.start_and_simple_button import (
     tags_buttons,
     choose_category_in_deadend_callback_for_fonts
 )
-from ...keyboards import get_fonts_buttons
+from ...keyboards import get_fonts_buttons, how_to_install_fonts_buttons
 
 from Tree.ClassTree import Tree
 
@@ -435,7 +435,7 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
     except:
         return
     try:
-        reply_markup = await go_back_to_main_menu()
+        reply_markup = await how_to_install_fonts_buttons()
         await callback_query.message.delete()
         await callback_query.bot.send_message(
             chat_id=callback_query.message.chat.id,
