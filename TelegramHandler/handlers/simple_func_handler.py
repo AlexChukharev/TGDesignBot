@@ -11,10 +11,18 @@ from TelegramHandler.keyboards import go_back_to_main_menu
 router = Router()
 
 
-@router.message(Command("actions"))
+@router.message(Command("about"))
 async def cmd_help(message: Message):
+    # await message.answer(
+    #     f'Привет, {message.from_user.first_name}!\nЯ Viscomms, бот команды визуальных коммуникаций.'\
+    #     f'Обращайся ко мне, если нужно найти материалы для презентаций или помочь с дизайном\n\n'\
+    #     f'Я только начал свою работу и стремлюсь быть максимально полезным и удобным. Буду рад обратной связи!'
+    # )
     await message.answer(
-        "Я – бот отдела визуальных коммуникаций екома и райдтеха. Я умею находить нужные тебе материалы и помогать в создании слайдов – потыкай кнопочки, чтобы узнать подробнее)"
+        text=f'Привет, {message.from_user.first_name}!\nЯ &mdash; бот-помощник команды визуальных коммуникаций.'\
+        f'Могу найти материалы для презентаций, подобрать подходящую визуализацию или помочь поставить задачу команде дизайнеров\n\n'\
+        f'Я только начинаю свой путь и стремлюсь развиваться, поэтому буду рад твоей обратной связи и идеям для улучшения!',
+        parse_mode=ParseMode.HTML
     )
 
 
@@ -40,8 +48,9 @@ async def cmd_feedback(callback_query: CallbackQuery):
 @router.callback_query(F.data == "designer")
 async def cmd_feedback(callback_query: CallbackQuery):
     reply_markup = await go_back_to_main_menu()
-    link = "https://forms.yandex-team.ru/surveys/VISCOMMS/"
-    text = f"Заполни форму по <a href='{link}'>ссылке</a>, чтобы поставить задачу дизайнерам"
+    # link = "https://forms.yandex-team.ru/surveys/VISCOMMS/"
+    link = "https://wiki.yandex-team.ru/viscomms/"
+    text = f"Держи, вот <a href='{link}'>ссылка на вики</a>"
     await callback_query.message.edit_text(
         text=text,
         parse_mode=ParseMode.HTML,

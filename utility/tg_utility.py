@@ -30,7 +30,7 @@ async def can_go_left(indx_list_start: int) -> bool:
 
 
 async def can_go_back(user_data) -> bool:
-    return not len(user_data) == 1
+    return not len(user_data) == 2
 
 
 async def update_data(state: FSMContext, path, indx_list_start, indx_list_end, can_go_back, child_list) -> None:

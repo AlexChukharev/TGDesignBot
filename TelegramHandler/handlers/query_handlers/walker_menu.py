@@ -403,7 +403,7 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
     zip_name = ''
     try:
         if len(files_list) == 1:
-            if files_list[0][2] == 'fonts':
+            if files_list[0][2] == 'Шаблоны':
                 await callback_query.message.edit_text(
                     text=f"Отправляю шрифты для всех наших презентаций, секунду...",
                     parse_mode=ParseMode.HTML
@@ -416,7 +416,7 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
                 )
                 zip_name = files_list[0][2]
         else:
-            if user_info['path'][-1] == 'fonts':
+            if user_info['path'][-1] == 'Шаблоны':
                 await callback_query.message.edit_text(
                     text=f"Отправляю шрифты для всех наших презентаций, секунду...",
                     parse_mode=ParseMode.HTML

@@ -5,27 +5,31 @@ import json
 def rows_for_main_menu():
     rows = [
         [InlineKeyboardButton(
-            text='Найти шаблон для презентаций',
+            text='Шаблоны презентаций',
             callback_data='pres_templates'
         )],
         [InlineKeyboardButton(
-            text='Получить готовые слайды о компании',
+            text='Готовые слайды о компании',
             callback_data='about_company'
         )],
         [InlineKeyboardButton(
-            text='Скачать корпоративные шрифты',
+            text='Корпоративные шрифты',
             callback_data='fonts'
         )],
         [InlineKeyboardButton(
-            text='[BETA] Придумать дизайн',
+            text='Идеи оформления слайдов',
             callback_data='search_by_tags'
         )],
+        # [InlineKeyboardButton(
+        #     text='Дополнительные материалы',
+        #     callback_data='extra_assets'
+        # )],
         [InlineKeyboardButton(
-            text='Нужен дизайнер — поставить задачу',
+            text='Вики команды дизайнеров',
             callback_data='designer'
         )],
         [InlineKeyboardButton(
-            text='Хочу дать обратную связь',
+            text='Обратная связь',
             callback_data='bot_feedback'
         )]
     ]
@@ -39,7 +43,7 @@ def row_back_to_main_menu():
 def main_menu_inline_button() -> InlineKeyboardButton:
     return InlineKeyboardButton(
         text='В главное меню',
-        callback_data='start'
+        callback_data='main_menu'
     )
 
 
