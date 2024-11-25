@@ -33,7 +33,7 @@ async def cmd_start_handler(message: Message, state: FSMContext):
     await state.clear()
     reply_markup = await main_menu_buttons_from_query()
     await message.answer(
-        text=f'Привет, {message.from_user.first_name}!\nЯ – бот-помощник команды визуальных коммуникаций.'\
+        text=f'Привет, {message.from_user.first_name}!\nЯ – бот-помощник команды визуальных коммуникаций. '\
         f'Могу найти материалы для презентаций, подобрать подходящую визуализацию или помочь поставить задачу команде дизайнеров\n\n'\
         f'Я только начинаю свой путь и стремлюсь развиваться, поэтому буду рад твоей обратной связи и идеям для улучшения!',
         parse_mode=ParseMode.HTML

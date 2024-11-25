@@ -18,12 +18,13 @@ def rows_for_main_menu():
         )],
         [InlineKeyboardButton(
             text='Идеи оформления слайдов',
+            # text='Не нажимай, а то заболеешь',
             callback_data='search_by_tags'
         )],
-        # [InlineKeyboardButton(
-        #     text='Дополнительные материалы',
-        #     callback_data='extra_assets'
-        # )],
+        [InlineKeyboardButton(
+            text='Дополнительные материалы',
+            callback_data='extra_assets'
+        )],
         [InlineKeyboardButton(
             text='Вики команды дизайнеров',
             callback_data='designer'
@@ -112,13 +113,22 @@ async def choose_template_text_root(type_file: str) -> str:
     if type_file == 'font':
         return f"У нас очень много шрифтов — тебе для какого подразделения нужны?\n"
     if type_file == 'search_by_tags':
+        link = 'https://t.me/+8i1uLItQYgNhZjZi'
         return f"Я подскажу варианты, как можно оформить твой контент!\n\n" \
             f"К сожалению, прямо сейчас у я умею работать только с шаблоном Go, но если тебе очень нужен другой, " \
-            f"пиши {json.load(open('./config.json'))['owner']} \n" \
+            f"напиши об этом <a href='{link}'>в чат</a>\n" \
             f"Продолжаем?"
+    # if type_file == 'search_by_tags':
+    #     return f"Я подскажу варианты, как можно оформить твой контент!\n\n" \
+    #         f"К сожалению, прямо сейчас у я умею работать только с шаблоном Go, но если тебе очень нужен другой, " \
+    #         f"пиши {json.load(open('./config.json'))['owner']} \n" \
+    #         f"Продолжаем?"
            # f"Но для начала, подскажи, в каком шаблоне ты делаешь презентацию?\n\n" \
     if type_file == 'about_company':
         return f"У меня подготовлены слайды на двух языках — тебе какие нужны?"
+    if type_file == 'extra_assets':
+        return f"Здесь собраны универсальные элементы, которые можно использовать в любых презентациях\nЧто тебя интересует?"
+        # return f"Что тебя интересует?"
 
 
 # async def choose_one_file(key_list: list, paths_list: list) -> str:
@@ -211,7 +221,14 @@ async def go_back_to_main_menu() -> InlineKeyboardMarkup:
     return markup
 
 
-async def tags_buttons(tags: list) -> InlineKeyboardMarkup:
+def go_back_in_tags_inline_button() -> InlineKeyboardButton:
+    return InlineKeyboardButton(
+        text='Назад',
+        callback_data='0'
+    )
+
+
+async def tags_buttons(tags: list, can_go_back: bool) -> InlineKeyboardMarkup:
     rows = []
     counter = 1
     for tag in tags:
@@ -222,7 +239,24 @@ async def tags_buttons(tags: list) -> InlineKeyboardMarkup:
             )
         ])
         counter += 1
-    rows.append(row_back_to_main_menu())
+    # rows.append(row_back_to_main_menu())
+    if (can_go_back):
+        rows.append(
+            [go_back_in_tags_inline_button(), main_menu_inline_button()]
+        )
+    else:
+        rows.append(row_back_to_main_menu())
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+def search_by_tags_from_start_button() -> InlineKeyboardButton:
+    return InlineKeyboardButton(
+        text='Посмотреть другие идеи',
+        callback_data='ideas_start'
+    )
+
+async def ideas_final_buttons() -> InlineKeyboardMarkup:
+    rows = [[search_by_tags_from_start_button()], row_back_to_main_menu()]
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
 

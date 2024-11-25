@@ -28,7 +28,8 @@ from ...keyboards.start_and_simple_button import (
     choose_category_callback,
     go_back_to_main_menu,
     tags_buttons,
-    choose_category_in_deadend_callback_for_fonts
+    choose_category_in_deadend_callback_for_fonts,
+    ideas_final_buttons
 )
 from ...keyboards import get_fonts_buttons, how_to_install_fonts_buttons
 
@@ -74,12 +75,15 @@ def get_disk_folder_name(query_type: str) -> str:
         return 'Advanced'
     if query_type == 'about_company':
         return 'Слайды о компании'
+    if query_type == 'extra_assets':
+        return 'Дополнительные материалы'
 
 
 @router.callback_query(F.data == "pres_templates")
 @router.callback_query(F.data == "fonts")
 @router.callback_query(F.data == "search_by_tags")
 @router.callback_query(F.data == "about_company")
+@router.callback_query(F.data == "extra_assets")
 async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext) -> None:
     tree = await load_tree()
     config = await load_config()
@@ -121,6 +125,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
 
     await callback_query.message.edit_text(
         text=text,
+        parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
 
@@ -213,9 +218,60 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
 
     await callback_query.message.edit_text(
         text=text,
+        parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
     await update_user_info(state, path, indx_list_start, indx_list_end, can_go_back, child_list)
+
+
+# TODO описание
+# async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, files_list):
+#     file_name = files_list[0][2]
+#     file_path = files_list[0][1]
+#     reply_text = f'Отлично, делаем презентацию в шаблоне <b>{file_name}</b>\nТеперь расскажи, какой слайд нам нужен'
+#     try:
+#         with open("./tags_tree.json", "r") as tags_file:
+#             tags = json.load(tags_file)
+#     except:
+#         print('error while reading tags_tree.json')
+#         text = await error_text()
+#         await error_final(callback_query, text)
+#         return
+#     await change_state_to_tags(state, WalkerState.tags_search, files_list, [file_name], [file_path], tags)
+
+#     reply_markup = await tags_buttons(tags, False)
+#     await callback_query.message.delete()
+#     await callback_query.bot.send_message(
+#         chat_id=callback_query.from_user.id,
+#         text=reply_text,
+#         parse_mode=ParseMode.HTML,
+#         reply_markup=reply_markup
+#     )
+
+
+# TODO описание
+@router.callback_query(WalkerState.tags_search, F.data == "ideas_start")
+async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
+    reply_text = f'Что хочешь нарисовать?'
+    try:
+        with open("./tags_tree.json", "r") as tags_file:
+            tags = json.load(tags_file)
+    except:
+        print('error while reading tags_tree.json')
+        text = await error_text()
+        await error_final(callback_query, text)
+        return
+    # await change_state_to_tags(state, WalkerState.tags_search, files_list, [file_name], [file_path], tags)
+
+    await state.update_data(tags=tags)
+    reply_markup = await tags_buttons(tags['sub_categories'], False)
+    await callback_query.message.delete()
+    await callback_query.bot.send_message(
+        chat_id=callback_query.from_user.id,
+        text=reply_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
+    )
 
 
 # TODO описание
@@ -233,7 +289,7 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
         return
     await change_state_to_tags(state, WalkerState.tags_search, files_list, [file_name], [file_path], tags)
 
-    reply_markup = await tags_buttons(tags)
+    reply_markup = await tags_buttons(tags['sub_categories'], False)
     await callback_query.message.delete()
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -277,12 +333,13 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     slide_info.add_template_info(template_info)
     get_template_of_slides(path_to_save, slide_info)
     try:
-        await send_file_from_local_for_query(callback_query, path_to_save, f'{tag} ({template_name}).pptx')
+        await send_file_from_local_for_query(callback_query, path_to_save, f'{tag} ({template_name[:-5]}).pptx')
     except:
         # TODO обработать ошибки
         print('err2')
 
-    reply_markup = await go_back_to_main_menu()
+    # reply_markup = await go_back_to_main_menu()
+    reply_markup = await ideas_final_buttons()
     await callback_query.message.delete()
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -292,17 +349,58 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     remove_template(path_to_save)
 
 
-@router.callback_query(WalkerState.tags_search)
+# @router.callback_query(WalkerState.tags_search)
+# async def tags_search(callback_query: CallbackQuery, state: FSMContext):
+#     state_info = await state.get_data()
+#     tags_on_prev_step = state_info['tags']
+#     chosen_tag_id = int(callback_query.data) - 1
+#     cur_tag = tags_on_prev_step[chosen_tag_id]
+#     if 'sub_categories' in cur_tag:
+#         # не дошли до листа => ищем тег дальше
+#         new_tags = cur_tag['sub_categories']
+#         await state.update_data(tags=new_tags)
+#         reply_markup = await tags_buttons(new_tags)
+#         await callback_query.message.delete()
+#         await callback_query.bot.send_message(
+#             chat_id=callback_query.from_user.id,
+#             text=cur_tag['comment'],
+#             reply_markup=reply_markup
+#         )
+#     else:
+#         # дошли до листа => запускаем генерацию pptx
+#         if 'tag' in cur_tag:
+#             await finish_tags_search(callback_query, state, cur_tag['tag'])
+#         else:
+#             # такого вообще не должно быть
+#             print('error in tags_search while getting tag')
+#             text = await error_text()
+#             await error_final(callback_query, text)
+
+
+# @router.callback_query(WalkerState.tags_search)
+@router.callback_query(WalkerState.tags_search, F.data != "ideas_start")
 async def tags_search(callback_query: CallbackQuery, state: FSMContext):
     state_info = await state.get_data()
-    tags_on_prev_step = state_info['tags']
+    tags_on_prev_step_dict = state_info['tags']
     chosen_tag_id = int(callback_query.data) - 1
-    cur_tag = tags_on_prev_step[chosen_tag_id]
+
+    # if wanna go back
+    if (chosen_tag_id == -1):
+        cur_tag = tags_on_prev_step_dict['parent']
+        print('wanna go back')
+        # print(cur_tag)
+        # text = await error_text()
+        # await error_final(callback_query, text)
+        # return
+    else:
+        cur_tag = tags_on_prev_step_dict['sub_categories'][chosen_tag_id]
+        cur_tag['parent'] = tags_on_prev_step_dict
+    
     if 'sub_categories' in cur_tag:
         # не дошли до листа => ищем тег дальше
         new_tags = cur_tag['sub_categories']
-        await state.update_data(tags=new_tags)
-        reply_markup = await tags_buttons(new_tags)
+        await state.update_data(tags=cur_tag)
+        reply_markup = await tags_buttons(new_tags, ('parent' in cur_tag))
         await callback_query.message.delete()
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
@@ -323,6 +421,8 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
 # TODO описание
 async def finish_template_search(callback_query: CallbackQuery, state: FSMContext):
     files_list = await get_list_of_files(state)
+    user_info = await state.get_data()
+    type_file = user_info['type_file']
     if not files_list:
         text = await error_text()
         await error_final(callback_query, text)
@@ -354,17 +454,26 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     # TODO перенести отправку в отдельную функцию
     if file_size_in_limit(file_size):
         await callback_query.message.edit_text(
-            text=f'Супер, отправляю! Это займет минутку'
+            text=f'Супер, отправляю! Это займет немного времени'
         )
         try:
             await download_with_link_query(callback_query, link, file_name)
-            reply_markup = await get_fonts_buttons()
-            await callback_query.message.delete()
-            await callback_query.bot.send_message(
-                chat_id=callback_query.from_user.id,
-                text="Держи файл! И не забудь проверить, что у тебя есть корпоративные шрифты",
-                reply_markup=reply_markup
-            )
+            if type_file == "extra_assets":
+                reply_markup = await go_back_to_main_menu()
+                await callback_query.message.delete()
+                await callback_query.bot.send_message(
+                    chat_id=callback_query.from_user.id,
+                    text="Забирай!",
+                    reply_markup=reply_markup
+                )
+            else:
+                reply_markup = await get_fonts_buttons()
+                await callback_query.message.delete()
+                await callback_query.bot.send_message(
+                    chat_id=callback_query.from_user.id,
+                    text="Держи файл! И не забудь установить корпоративные шрифты",
+                    reply_markup=reply_markup
+                )
         except:
             text = await error_text()
             await error_final(callback_query, text)
@@ -479,6 +588,8 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
         if type_file == 'search_by_tags':
             await start_tags_search(callback_query, state, files_list)
         if type_file == 'about_company':
+            await finish_template_search(callback_query, state)
+        if type_file == 'extra_assets':
             await finish_template_search(callback_query, state)
 
     else:

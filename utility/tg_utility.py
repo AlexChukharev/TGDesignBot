@@ -135,6 +135,9 @@ async def set_file_type(type_file: str, state: FSMContext) -> str:
     elif type_file in ("Готовые слайды о компании", "about_company"):
         await state.update_data(type_file='about_company')
         return 'about_company'
+    elif type_file in ("Дополнительные материалы", "extra_assets"):
+        await state.update_data(type_file='extra_assets')
+        return 'extra_assets'
     elif type_file == "search_by_tags":
         await state.update_data(type_file='search_by_tags')
         return 'search_by_tags'
@@ -228,11 +231,12 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name
                 print('error while reading url')
                 print(X)
         merge_fonts(user_zip_path, path_to_zip)
-        await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name}_fonts.zip')
+        await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name[1:]} Шрифты.zip')
     except:
         await callback_query.answer(
-            text=f'Что-то пошло не так :( Сообщи '
-                  f'{json.load(open("./config.json"))["owner"]} или попробуй позже'
+            # text=f'Что-то пошло не так :( Сообщи '
+            #       f'{json.load(open("./config.json"))["owner"]} или попробуй позже'
+            text=f'Что-то пошло не так :( Сообщи нам об этом или попробуй позже'
         )
     shutil.rmtree(user_zip_path)
     os.remove(path_to_zip)
@@ -303,7 +307,8 @@ def merge_fonts(input_folder, output_zip):
 
 
 async def error_text():
-    return f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']} или попробуй позже"
+    # return f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']} или попробуй позже"
+    return f"Что-то пошло не так :( Сообщи нам о проблеме или попробуй позже"
 
 
 async def error_final(callback_query: CallbackQuery, text: str):

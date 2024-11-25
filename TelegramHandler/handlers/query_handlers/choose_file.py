@@ -118,6 +118,9 @@ async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
         path = list_fonts[0][1] + '/' + list_fonts[0][3]
         link = get_download_link(path)
         await download_with_link_query(callback_query, link, 'fonts.zip')
+        # template_name = user_info['path'][-1]
+        # await download_with_link_query(callback_query, link, f'Шрифты для ({template_name[1:]}).zip')
+
         reply_markup = await how_to_install_fonts_buttons()
         await callback_query.message.delete()
         await callback_query.bot.send_message(
@@ -208,7 +211,7 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                     await callback_query.message.delete()
                     await callback_query.bot.send_message(
                         chat_id=callback_query.from_user.id,
-                        text="Держи файл! И не забудь проверить, что у тебя есть корпоративные шрифты)",
+                        text="Держи файл! И не забудь установить корпоративные шрифты",
                         reply_markup=reply_markup
                     )
 

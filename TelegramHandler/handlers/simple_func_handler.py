@@ -19,7 +19,7 @@ async def cmd_help(message: Message):
     #     f'Я только начал свою работу и стремлюсь быть максимально полезным и удобным. Буду рад обратной связи!'
     # )
     await message.answer(
-        text=f'Привет, {message.from_user.first_name}!\nЯ &mdash; бот-помощник команды визуальных коммуникаций.'\
+        text=f'Привет, {message.from_user.first_name}!\nЯ &mdash; бот-помощник команды визуальных коммуникаций. '\
         f'Могу найти материалы для презентаций, подобрать подходящую визуализацию или помочь поставить задачу команде дизайнеров\n\n'\
         f'Я только начинаю свой путь и стремлюсь развиваться, поэтому буду рад твоей обратной связи и идеям для улучшения!',
         parse_mode=ParseMode.HTML
@@ -29,20 +29,26 @@ async def cmd_help(message: Message):
 @router.message(Command("help"))
 @router.message(F.text.lower() == "хочу дать обратную связь")
 async def cmd_feedback(message: Message):
+    link = 'https://t.me/+8i1uLItQYgNhZjZi'
     await message.reply(
-        f"По любым проблемам с ботом или материалами пиши {json.load(open('./config.json'))['owner']}"
+        # f"По любым проблемам с ботом или материалами пиши {json.load(open('./config.json'))['owner']}"
+        text=f"По любым проблемам с ботом или материалами обязательно пиши <a href='{link}'>в чат</a>",
+        parse_mode=ParseMode.HTML
     )
 
 
 @router.callback_query(F.data == "bot_feedback")
 async def cmd_feedback(callback_query: CallbackQuery):
     reply_markup = await go_back_to_main_menu()
-    text = f"По любым проблемам с ботом или материалами пиши {json.load(open('./config.json'))['owner']}"
+    link = 'https://t.me/+8i1uLItQYgNhZjZi'
+    # text = f"По любым проблемам с ботом или материалами пиши {json.load(open('./config.json'))['owner']}"
+    text = f"По любым проблемам с ботом или материалами обязательно пиши <a href='{link}'>в чат</a>"
     await callback_query.message.edit_text(
         text=text,
         parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
+    
 
 
 @router.callback_query(F.data == "designer")
