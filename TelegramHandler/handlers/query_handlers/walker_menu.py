@@ -225,31 +225,6 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
 
 
 # TODO описание
-# async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, files_list):
-#     file_name = files_list[0][2]
-#     file_path = files_list[0][1]
-#     reply_text = f'Отлично, делаем презентацию в шаблоне <b>{file_name}</b>\nТеперь расскажи, какой слайд нам нужен'
-#     try:
-#         with open("./tags_tree.json", "r") as tags_file:
-#             tags = json.load(tags_file)
-#     except:
-#         print('error while reading tags_tree.json')
-#         text = await error_text()
-#         await error_final(callback_query, text)
-#         return
-#     await change_state_to_tags(state, WalkerState.tags_search, files_list, [file_name], [file_path], tags)
-
-#     reply_markup = await tags_buttons(tags, False)
-#     await callback_query.message.delete()
-#     await callback_query.bot.send_message(
-#         chat_id=callback_query.from_user.id,
-#         text=reply_text,
-#         parse_mode=ParseMode.HTML,
-#         reply_markup=reply_markup
-#     )
-
-
-# TODO описание
 @router.callback_query(WalkerState.tags_search, F.data == "ideas_start")
 async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
     reply_text = f'Что хочешь нарисовать?'
@@ -347,34 +322,6 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
         reply_markup=reply_markup
     )
     remove_template(path_to_save)
-
-
-# @router.callback_query(WalkerState.tags_search)
-# async def tags_search(callback_query: CallbackQuery, state: FSMContext):
-#     state_info = await state.get_data()
-#     tags_on_prev_step = state_info['tags']
-#     chosen_tag_id = int(callback_query.data) - 1
-#     cur_tag = tags_on_prev_step[chosen_tag_id]
-#     if 'sub_categories' in cur_tag:
-#         # не дошли до листа => ищем тег дальше
-#         new_tags = cur_tag['sub_categories']
-#         await state.update_data(tags=new_tags)
-#         reply_markup = await tags_buttons(new_tags)
-#         await callback_query.message.delete()
-#         await callback_query.bot.send_message(
-#             chat_id=callback_query.from_user.id,
-#             text=cur_tag['comment'],
-#             reply_markup=reply_markup
-#         )
-#     else:
-#         # дошли до листа => запускаем генерацию pptx
-#         if 'tag' in cur_tag:
-#             await finish_tags_search(callback_query, state, cur_tag['tag'])
-#         else:
-#             # такого вообще не должно быть
-#             print('error in tags_search while getting tag')
-#             text = await error_text()
-#             await error_final(callback_query, text)
 
 
 # @router.callback_query(WalkerState.tags_search)
@@ -489,57 +436,42 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         )
 
 
-# TODO переименовать + описание
-async def finish_fonts_search(callback_query: CallbackQuery, state: FSMContext, can_go_back, files_list):
-    reply_markup = await choose_category_in_deadend_callback_for_fonts(can_go_back)
-    if files_list:
-        text = f'\n Есть шрифты для <b>{files_list[0][2]}</b>\n'
-        await callback_query.message.edit_text(
-            text=text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=reply_markup
-        )
-    else:
-        text = await error_text()
-        await error_final(callback_query, text)
-
-
 @router.callback_query(WalkerState.choose_button, F.data == "get_fonts_from_all_pres")
 async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMContext):
+    """
+        Обработка конпки "скачать сразу все шрифты"
+    """
+        
     user_info = await state.get_data()
     files_list = await get_list_of_files(state)
     path = '/'.join(user_info['path'][1:])
-    zip_name = ''
+    
+    # определяем сообщение и имя архива — отдельно обрабатываем корень
+    item_name = ''
     try:
-        if len(files_list) == 1:
-            if files_list[0][2] == 'Шаблоны':
-                await callback_query.message.edit_text(
+        if user_info['path'][-1] == 'Шаблоны':
+            await callback_query.message.edit_text(
                     text=f"Отправляю шрифты для всех наших презентаций, секунду...",
                     parse_mode=ParseMode.HTML
                 )
-                zip_name = 'all'
-            else:
-                await callback_query.message.edit_text(
-                    text=f"Отправляю шрифты для <b>{files_list[0][2]}</b>, секунду...",
-                    parse_mode=ParseMode.HTML
-                )
-                zip_name = files_list[0][2]
+            item_name = 'all'
         else:
-            if user_info['path'][-1] == 'Шаблоны':
-                await callback_query.message.edit_text(
-                    text=f"Отправляю шрифты для всех наших презентаций, секунду...",
-                    parse_mode=ParseMode.HTML
-                )
-                zip_name = 'all'
+            if len(files_list) == 1:
+                # если отдаем шрифты для шаблона
+                item_name = files_list[0][2]
             else:
-                await callback_query.message.edit_text(
-                    text=f"Отправляю шрифты для <b>{user_info['path'][-1]}</b>, секунду...",
+                # иначе — для БЮ
+                item_name = user_info['path'][-1]
+            await callback_query.message.edit_text(
+                    text=f"Отправляю шрифты для <b>{item_name}</b>, секунду...",
                     parse_mode=ParseMode.HTML
                 )
-                zip_name = user_info['path'][-1]
+            # удаляем эмоджи и пробел
+            item_name = item_name[2:]
     except:
         print('Proxy error')
     try:
+        zip_name = f'Шрифты {item_name}'
         await start_send_fonts_for_query(callback_query, path, zip_name)
     except:
         return
@@ -554,7 +486,7 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
     except:
         print('Proxy error')
 
-
+# Имитация хождения по директориям при поиске материалов
 @router.callback_query(WalkerState.choose_button, F.data != "install_fonts_help")
 async def navigate_template_find(callback_query: CallbackQuery, state: FSMContext):
     tree = await load_tree()
@@ -579,10 +511,12 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
     can_go_left = await check_left(indx_list_start)
     await update_user_info(state, path, indx_list_start, indx_list_end, can_go_back, child_list)
 
+    # проверяем, спустились ли до "листа" (нет вложенных директорий)
+    # если спустились, отправляемся на обработку материалов для запроса
     if not child_list:
         files_list = await get_list_of_files(state)
         if type_file == 'font':
-            await finish_fonts_search(callback_query, state, can_go_back, files_list)
+            await get_fonts_from_all_pres(callback_query, state)
         if type_file == 'template':
             await finish_template_search(callback_query, state)
         if type_file == 'search_by_tags':
@@ -591,14 +525,17 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
             await finish_template_search(callback_query, state)
         if type_file == 'extra_assets':
             await finish_template_search(callback_query, state)
-
     else:
-        reply_markup = await choose_category_callback(
-            child_list[indx_list_start:indx_list_end],
-            can_go_left,
-            can_go_right,
-            can_go_back,
-            type_file
-        )
-        text = await choose_template_text_inner(path[-1])
-        await callback_query.message.edit_text(text=text, reply_markup=reply_markup)
+        # отдельно рассматривается случай со шрифтами – для них не хотим спускаться до уровня шаблонов — останавливаемся на уровне БЮ (4)
+        if type_file == 'font' and len(path) == 4:
+            await get_fonts_from_all_pres(callback_query, state)
+        else:
+            reply_markup = await choose_category_callback(
+                child_list[indx_list_start:indx_list_end],
+                can_go_left,
+                can_go_right,
+                can_go_back,
+                type_file
+            )
+            text = await choose_template_text_inner(path[-1])
+            await callback_query.message.edit_text(text=text, reply_markup=reply_markup)

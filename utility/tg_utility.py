@@ -204,6 +204,9 @@ async def download_with_link_query(callback_query: CallbackQuery, link, file_nam
 
 
 async def send_file_from_local_for_query(callback_query: CallbackQuery, path, filename):
+    """
+        Отправляет локальный файл filename, находящийся в директории path пользователю
+    """
     await send_document.SendDocument(
         chat_id=callback_query.message.chat.id,
         document=types.FSInputFile(
@@ -214,10 +217,21 @@ async def send_file_from_local_for_query(callback_query: CallbackQuery, path, fi
 
 
 async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name: str):
+    """
+        Скачивает все шрифты из списка list_data локально, собирает в один архив 
+        и отправляет пользователю
+    """
+
+    # Data — директория для хранения временных локальных файлов
     for_zip_path = f'Data/forZip'
+    if not os.path.exists(for_zip_path):
+        os.mkdir(for_zip_path)
+
+    # в один момент пользователь может скачивать только один материал — необходимые данные храним локально по айдишнику
     user_zip_path = for_zip_path + '/' + f'{callback_query.from_user.id}'
     archive_name = f'{callback_query.from_user.id}.zip'
     path_to_zip = for_zip_path + '/' + archive_name
+
     try:
         if not os.path.exists(user_zip_path):
             os.mkdir(user_zip_path)
@@ -230,40 +244,49 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name
             except Exception as X:
                 print('error while reading url')
                 print(X)
-        merge_fonts(user_zip_path, path_to_zip)
-        await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name[1:]} Шрифты.zip')
+        merge_fonts(user_zip_path, path_to_zip, zip_name)
+        # await send_file_from_local_for_query(callback_query, path_to_zip, f'Шрифты {zip_name}.zip')
+        await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name}.zip')
     except:
+        # TODO использовать общее сообщение об ошибке
         await callback_query.answer(
             # text=f'Что-то пошло не так :( Сообщи '
             #       f'{json.load(open("./config.json"))["owner"]} или попробуй позже'
             text=f'Что-то пошло не так :( Сообщи нам об этом или попробуй позже'
         )
+
+    # удаляем временные файлы
     shutil.rmtree(user_zip_path)
     os.remove(path_to_zip)
 
 
-# TODO ???
-# Enter the reply message, the path on Yadisk, and the local path
-# to download the files so that the bot sends the user the
-# correct files
 async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_name: str):
+    """
+        Скачивает все шрифты в директории YDPath на Яндекс Диске
+        и отправляет пользователю архив zip_name.zip
+    """
+
+    # собираем все шрифты из текущей директории (рекурсивно)
     list_fonts = get_fonts_from_child_directories(YDpath)
+
+    # отдельно обрабатываем кейс, если не нашли шрифты
     if len(list_fonts) == 0:
-        print('expected fonts dont found')
+        print('expected fonts not found')
         reply_markup = await go_back_to_main_menu()
         await callback_query.message.edit_text(
             text='По данному запросу не найдено ни одного шрифта!',
             reply_markup=reply_markup
         )
+        return
+
     try:
         await callback_query.bot.send_chat_action(
             chat_id=callback_query.message.chat.id,
             action=ChatAction.UPLOAD_DOCUMENT,
         )
-
     except:
         # TODO обработать ошибки
-        print('Error')
+        print('cannot set UPLOAD_DOCUMENT telegram action')
     try:
         async with ChatActionSender.upload_document(
             bot=callback_query.bot,
@@ -272,16 +295,19 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_
             await send_zips_for_query(callback_query, list_fonts, zip_name)
     except:
         # TODO обработать ошибки
-        print('Error')
+        print('Error while sendng fonts zip')
 
 
-def merge_fonts(input_folder, output_zip):
+def merge_fonts(input_folder, output_zip, dir_name):
+    """
+        Скачивает все архивы с шрифтами в директории input_folder в единый архив output_zip
+        dir_name — название папки со шрифтами внутри архива
+    """
+        
     # Set for unique fonts
     unique_files = set()
 
     with zipfile.ZipFile(output_zip, 'w') as output_zip_file:
-        dir_name = 'Fonts'
-        # output_zip_file.mkdir(dir_name)
         for root, _, files in os.walk(input_folder):
             for file in files:
                 if file.endswith('.zip'):
@@ -307,8 +333,12 @@ def merge_fonts(input_folder, output_zip):
 
 
 async def error_text():
-    # return f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']} или попробуй позже"
-    return f"Что-то пошло не так :( Сообщи нам о проблеме или попробуй позже"
+    """
+        Текст для пользователя о видимых ошибках
+    """
+
+    return f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']} или попробуй позже"
+    # return f"Что-то пошло не так :( Сообщи нам о проблеме или попробуй позже"
 
 
 async def error_final(callback_query: CallbackQuery, text: str):
