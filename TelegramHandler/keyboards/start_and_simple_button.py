@@ -113,17 +113,10 @@ async def choose_template_text_root(type_file: str) -> str:
     if type_file == 'font':
         return f"У нас очень много шрифтов — тебе для какого подразделения нужны?\n"
     if type_file == 'search_by_tags':
-        link = 'https://t.me/+8i1uLItQYgNhZjZi'
         return f"Я подскажу варианты, как можно оформить твой контент!\n\n" \
             f"К сожалению, прямо сейчас у я умею работать только с шаблоном Go, но если тебе очень нужен другой, " \
-            f"напиши об этом <a href='{link}'>в чат</a>\n" \
+            f"напиши об этом {json.load(open('./config.json'))['owner']}\n" \
             f"Продолжаем?"
-    # if type_file == 'search_by_tags':
-    #     return f"Я подскажу варианты, как можно оформить твой контент!\n\n" \
-    #         f"К сожалению, прямо сейчас у я умею работать только с шаблоном Go, но если тебе очень нужен другой, " \
-    #         f"пиши {json.load(open('./config.json'))['owner']} \n" \
-    #         f"Продолжаем?"
-           # f"Но для начала, подскажи, в каком шаблоне ты делаешь презентацию?\n\n" \
     if type_file == 'about_company':
         return f"У меня подготовлены слайды на двух языках — тебе какие нужны?"
     if type_file == 'extra_assets':

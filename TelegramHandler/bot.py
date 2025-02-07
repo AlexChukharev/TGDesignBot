@@ -16,8 +16,7 @@ from TelegramHandler.handlers.query_handlers import choose_file as q_choose_file
 async def setup_bot_commands(bot: Bot):
     bot_commands = [
         BotCommand(command="/start", description="Начать работу"),
-        # BotCommand(command="/about", description="Узнать, что я за бот такой")
-        # BotCommand(command="/help", description="Нужна помощь")
+        BotCommand(command="/help", description="Нужна помощь")
     ]
     await bot.set_my_commands(bot_commands)
 
