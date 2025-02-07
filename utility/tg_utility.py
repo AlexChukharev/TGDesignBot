@@ -332,16 +332,18 @@ def merge_fonts(input_folder, output_zip, dir_name):
                                         print('Cant add font to zip')
 
 
-async def error_text():
+async def error_text() -> str:
     """
         Текст для пользователя о видимых ошибках
     """
-
     return f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']} или попробуй позже"
     # return f"Что-то пошло не так :( Сообщи нам о проблеме или попробуй позже"
 
 
 async def error_final(callback_query: CallbackQuery, text: str):
+    """
+        Реплай в случае видимых ошибок бота
+    """
     reply_markup = await go_back_to_main_menu()
     await callback_query.message.delete()
     await callback_query.bot.send_message(
@@ -349,4 +351,22 @@ async def error_final(callback_query: CallbackQuery, text: str):
         text=text,
         parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
+    )
+
+
+def no_access_text() -> str:
+    """
+        Текст для пользователя, если у него нет доступа
+    """
+    return 'Нет доступа, проверь привзан ли телеграм к стаффу'
+
+
+async def error_no_access(callback_query: CallbackQuery):
+    """
+        Реплай в случае отстутствия доступа к боту
+    """
+    await callback_query.bot.send_message(
+        chat_id=callback_query.from_user.id,
+        text=no_access_text(),
+        parse_mode=ParseMode.HTML
     )

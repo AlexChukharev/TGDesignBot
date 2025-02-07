@@ -4,11 +4,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 from aiogram.types.input_file import FSInputFile
-
-from telegram import InputFile
-from telegram.constants import ParseMode
+from aiogram.enums import ParseMode
 
 from utility.checkers import is_user
+from utility.tg_utility import no_access_text, error_no_access
 
 from ..keyboards.start_and_simple_button import main_menu_buttons_from_query
 
@@ -28,8 +27,15 @@ class UserStates(StatesGroup):
     find_ready_structs = State()
 
 
-@router.message(Command("start"), lambda message: is_user(message.from_user.id))
+@router.message(Command("start"))
 async def cmd_start_handler(message: Message, state: FSMContext):
+    has_access = await is_user(message.from_user.id, message.from_user.username)
+    if not has_access:
+        await message.answer(
+        text=no_access_text()
+        )
+        return
+    
     await state.clear()
     reply_markup = await main_menu_buttons_from_query()
     await message.answer(
@@ -47,8 +53,14 @@ async def cmd_start_handler(message: Message, state: FSMContext):
     )
 
 
-@router.callback_query(F.data == "main_menu", lambda message: is_user(message.from_user.id))
+@router.callback_query(F.data == "main_menu")
 async def main_start_handler(callback_query: CallbackQuery, state: FSMContext):
+    has_access = await is_user(callback_query.from_user.id, callback_query.from_user.username)
+    print(callback_query.from_user.username)
+    if not has_access:
+        await error_no_access(callback_query)
+        return
+    
     await state.clear()
     reply_markup = await main_menu_buttons_from_query()
     await callback_query.message.edit_text(
@@ -57,9 +69,16 @@ async def main_start_handler(callback_query: CallbackQuery, state: FSMContext):
     )
 
 
-@router.message(Command(commands=["menu"]), lambda message: is_user(message.from_user.id))
+@router.message(Command(commands=["menu"]))
 @router.message(F.text.lower() == "в главное меню")
 async def cmd_cancel_handler(message: Message, state: FSMContext):
+    has_access = await is_user(message.from_user.id, message.from_user.username)
+    if not has_access:
+        await message.answer(
+        text=no_access_text()
+        )
+        return
+    
     await state.clear()
     reply_markup = await main_menu_buttons_from_query()
     await message.answer(
