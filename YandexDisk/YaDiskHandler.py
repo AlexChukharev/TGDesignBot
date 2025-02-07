@@ -66,6 +66,7 @@ def __search_in_directory__(directory: str,
 def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaDiskInfo):
     check_token(ya_disk)
     try:
+        # __search_in_directory__('/TelegramBotFastTest/', last_updated_time, ya_disk_info)
         __search_in_directory__('/TelegramBot/', last_updated_time, ya_disk_info)
     except Exception as e:
         ya_disk_info.clear()
@@ -99,6 +100,7 @@ def __add_nodes__(directory: str, last_updated_time, tree: Tree):
     for item in ya_disk.listdir(directory):
         if item.is_dir() and (not is_images(item)) and (not is_font(item)):
             if last_updated_time < item.created:
+                # if directory == "/TelegramBotFastTest/":
                 if directory == "/TelegramBot/":
                     tree.insert("root", item.name)
                 else:
@@ -110,6 +112,7 @@ def __add_nodes__(directory: str, last_updated_time, tree: Tree):
 def update_tree(tree: Tree, last_updated_time):
     check_token(ya_disk)
     __delete_nodes__('/', tree)
+    # __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree)
     __add_nodes__('/TelegramBot/', last_updated_time, tree)
     with open("./Tree/ObjectTree.pkl", "wb") as fp:
         pickle.dump(tree, fp)
