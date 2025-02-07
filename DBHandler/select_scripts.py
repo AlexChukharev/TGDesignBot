@@ -105,7 +105,7 @@ def get_slides_by_tags_and_template_id(tags: list, template_id: int) -> list:
 
     for idx in range(len(list_of_slides) - 1, -1, -1):
         for tag in tags:
-            if not (tag in list_of_slides[idx][2]):
+            if not (tag == list_of_slides[idx][2]):
                 list_of_slides.pop(idx)
                 break
     return list_of_slides
