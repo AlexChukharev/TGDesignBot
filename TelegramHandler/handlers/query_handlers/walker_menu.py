@@ -19,7 +19,8 @@ from utility.tg_utility import (
     get_list_of_files as get_list_of_files,
     download_with_link_query,
     can_go_right as check_right,
-    send_file_from_local_for_query, error_final, error_text
+    send_file_from_local_for_query, error_final, error_text,
+    try_to_delete_message
 )
 
 from ...keyboards.start_and_simple_button import (
@@ -240,7 +241,7 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
 
     await state.update_data(tags=tags)
     reply_markup = await tags_buttons(tags['sub_categories'], False)
-    await callback_query.message.delete()
+    await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text=reply_text,
@@ -265,7 +266,7 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
     await change_state_to_tags(state, WalkerState.tags_search, files_list, [file_name], [file_path], tags)
 
     reply_markup = await tags_buttons(tags['sub_categories'], False)
-    await callback_query.message.delete()
+    await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text=reply_text,
@@ -315,7 +316,7 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
 
     # reply_markup = await go_back_to_main_menu()
     reply_markup = await ideas_final_buttons()
-    await callback_query.message.delete()
+    await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text="Готово! Надеюсь, эти варианты тебе помогут",
@@ -348,7 +349,7 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
         new_tags = cur_tag['sub_categories']
         await state.update_data(tags=cur_tag)
         reply_markup = await tags_buttons(new_tags, ('parent' in cur_tag))
-        await callback_query.message.delete()
+        await try_to_delete_message(callback_query)
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
             text=cur_tag['comment'],
@@ -389,7 +390,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         template_info = TemplateInfo(str(file_name), str(file_path))
         template_id = get_template_id_by_name(template_info.path, template_info.name)
         delete_template(template_id)
-        await callback_query.message.delete()
+        await try_to_delete_message(callback_query)
         text = await error_text()
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
@@ -407,7 +408,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
             await download_with_link_query(callback_query, link, file_name)
             if type_file == "extra_assets":
                 reply_markup = await go_back_to_main_menu()
-                await callback_query.message.delete()
+                await try_to_delete_message(callback_query)
                 await callback_query.bot.send_message(
                     chat_id=callback_query.from_user.id,
                     text="Забирай!",
@@ -415,7 +416,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
                 )
             else:
                 reply_markup = await get_fonts_buttons()
-                await callback_query.message.delete()
+                await try_to_delete_message(callback_query)
                 await callback_query.bot.send_message(
                     chat_id=callback_query.from_user.id,
                     text="Держи файл! И не забудь установить корпоративные шрифты",
@@ -427,7 +428,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
             return
     else:
         reply_markup = await get_fonts_buttons()
-        await callback_query.message.delete()
+        await try_to_delete_message(callback_query)
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
             text=f"Забирай шаблон по <a href='{link}'>ссылке</a>",
@@ -477,7 +478,7 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
         return
     try:
         reply_markup = await how_to_install_fonts_buttons()
-        await callback_query.message.delete()
+        await try_to_delete_message(callback_query)
         await callback_query.bot.send_message(
             chat_id=callback_query.message.chat.id,
             text='Готово!',

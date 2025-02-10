@@ -6,10 +6,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery
 
-from utility.tg_utility import error_final, can_go_right as check_right, \
+from utility.tg_utility import error_final, try_to_delete_message, \
     download_with_link_query, send_file_from_local_for_query, error_text
-from utility.tg_utility import can_go_left as check_left
-from utility.tg_utility import update_indx as update_user_indx
 
 from DBHandler import (
     get_fonts_by_template_id,
@@ -122,7 +120,7 @@ async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
         # await download_with_link_query(callback_query, link, f'Шрифты для ({template_name[1:]}).zip')
 
         reply_markup = await how_to_install_fonts_buttons()
-        await callback_query.message.delete()
+        await try_to_delete_message(callback_query)
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
             text="Готово!",
@@ -144,7 +142,7 @@ async def send_info(callback_query: CallbackQuery):
     path = './Data/Appdata/00 How to install fonts.pdf'
     await send_file_from_local_for_query(callback_query, path, 'How to install fonts.pdf')
     reply_markup = await go_back_to_main_menu()
-    await callback_query.message.delete()
+    await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text='Это тебе поможет!',
@@ -208,7 +206,7 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                 try:
                     await download_with_link_query(callback_query, link, file_name)
                     reply_markup = await get_fonts_buttons()
-                    await callback_query.message.delete()
+                    await try_to_delete_message(callback_query)
                     await callback_query.bot.send_message(
                         chat_id=callback_query.from_user.id,
                         text="Держи файл! И не забудь установить корпоративные шрифты",
@@ -221,7 +219,7 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                     return
             else:
                 reply_markup = await get_fonts_buttons()
-                await callback_query.message.delete()
+                await try_to_delete_message(callback_query)
                 await callback_query.bot.send_message(
                     chat_id=callback_query.from_user.id,
                     text=f"Забирай шаблон по <a href='{link}'>ссылке</a>",
@@ -258,7 +256,7 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
             try:
                 await download_with_link_query(callback_query, link, 'fonts.zip')
                 reply_markup = await get_fonts_buttons()
-                await callback_query.message.delete()
+                await try_to_delete_message(callback_query)
                 await callback_query.bot.send_message(
                     chat_id=callback_query.message.chat.id,
                     text="Готово!",

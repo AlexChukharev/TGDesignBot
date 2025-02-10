@@ -332,6 +332,17 @@ def merge_fonts(input_folder, output_zip, dir_name):
                                         print('Cant add font to zip')
 
 
+async def try_to_delete_message(callback_query: CallbackQuery):
+    """
+        Cообщения старше 48 часов не удаляются, в другом случае — удаляем
+    """
+    try:
+        await callback_query.message.delete()
+    except:
+        print('tryng to delete old message (after 48 hours)')
+        pass
+
+
 async def error_text() -> str:
     """
         Текст для пользователя о видимых ошибках
@@ -345,7 +356,7 @@ async def error_final(callback_query: CallbackQuery, text: str):
         Реплай в случае видимых ошибок бота
     """
     reply_markup = await go_back_to_main_menu()
-    await callback_query.message.delete()
+    # await callback_query.message.delete()
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text=text,
