@@ -139,8 +139,8 @@ async def send_info(callback_query: CallbackQuery):
         )
     except:
         print('Proxy error')
-    path = './Data/Appdata/00 How to install fonts.pdf'
-    await send_file_from_local_for_query(callback_query, path, 'How to install fonts.pdf')
+    path = './Data/Appdata/Инструкция по установке шрифтов.pdf'
+    await send_file_from_local_for_query(callback_query, path, 'Инструкция по установке шрифтов.pdf')
     reply_markup = await go_back_to_main_menu()
     await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
