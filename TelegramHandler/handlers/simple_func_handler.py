@@ -5,19 +5,32 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery
 from aiogram.enums import ParseMode
+from aiogram.fsm.context import FSMContext
 
 from TelegramHandler.keyboards import go_back_to_main_menu
+
+from utility.tg_utility import no_access_text
+from utility.checkers import is_user
 
 router = Router()
 
 
 @router.message(Command("help"))
-async def cmd_feedback(message: Message):
-    text = f"Привет! Если пропали кнопки, выбирай команду /start\n\n" \
-        f"По любым проблемам с ботом или материалами обязательно пиши {json.load(open('./config.json'))['owner']}"
-    await message.reply(
+async def cmd_feedback(message: Message, state: FSMContext):
+    has_access = await is_user(message.from_user.id, message.from_user.username)
+    if not has_access:
+        await message.answer(
+        text=no_access_text()
+        )
+        return
+    
+    await state.clear()
+    reply_markup = await go_back_to_main_menu()
+    text = f"По любым проблемам с ботом или материалами обязательно пиши {json.load(open('./config.json'))['owner']}"
+    await message.answer(
         text=text,
-        parse_mode=ParseMode.HTML
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
     )
 
 
