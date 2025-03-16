@@ -9,7 +9,7 @@ from DBHandler.insert_scripts import insert_many_users
 def initialize_database() -> None:
     drop_tables()
     create_tables()
-    with open("./admins.json", "r") as admins_file:
+    with open("./CONFIG/admins.json", "r") as admins_file:
         config = json.load(admins_file)
 
     admins = config["admin_id"]

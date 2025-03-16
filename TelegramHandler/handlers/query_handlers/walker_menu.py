@@ -52,7 +52,6 @@ router = Router()
 
 
 class WalkerState(StatesGroup):
-    # TODO не только это — изучить и добавить описание
     # In the state we store child_list, indx_list_start\end, can_go_back
     choose_button = State()
     choose_category = State()
@@ -61,7 +60,7 @@ class WalkerState(StatesGroup):
 
 
 async def load_config():
-    with open("./config.json", "r") as file:
+    with open("./CONFIG/config.json", "r") as file:
         return json.load(file)
 
 
@@ -70,6 +69,10 @@ async def load_tree() -> Tree:
 
 
 def get_disk_folder_name(query_type: str) -> str:
+    """
+        Получает название папки на Я. Диске, 
+        в которой содержатся материалы соответствующие типу запроса
+    """
     if query_type in ['pres_templates', 'fonts']:
         return 'Шаблоны'
     if query_type == 'search_by_tags':
@@ -86,6 +89,9 @@ def get_disk_folder_name(query_type: str) -> str:
 @router.callback_query(F.data == "about_company")
 @router.callback_query(F.data == "extra_assets")
 async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext) -> None:
+    """
+        TODO описание
+    """
     tree = await load_tree()
     config = await load_config()
     dist_indx = config['dist']
@@ -131,8 +137,10 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     )
 
 
-# TODO проверить и написать описание
 async def paginate_template_find(callback_query: CallbackQuery, state: FSMContext, direction: str):
+    """
+        TODO описание
+    """
     config = await load_config()
     dist_indx = config['dist']
 
@@ -171,21 +179,28 @@ async def paginate_template_find(callback_query: CallbackQuery, state: FSMContex
     await update_user_indx(state, indx_list_start, indx_list_end)
 
 
-# Processes 'next block of directories' action
 @router.callback_query(WalkerState.choose_button, F.data == "next")
 async def next_template_find(callback_query: CallbackQuery, state: FSMContext):
+    """
+        Processes 'next block of directories' action
+    """
     await paginate_template_find(callback_query, state, "next")
 
 
-# Processes 'prev block of directories' action
 @router.callback_query(WalkerState.choose_button, F.data == "prev")
 async def prev_template_find(callback_query: CallbackQuery, state: FSMContext):
+    """
+        Processes 'prev block of directories' action
+    """
     await paginate_template_find(callback_query, state, "prev")
 
 
-# Processes 'prev directory' action
 @router.callback_query(WalkerState.choose_button, F.data == "prev_dir")
 async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContext):
+    """
+        Processes 'prev directory' action
+    """
+
     tree = await load_tree()
     config = await load_config()
     dist_indx = config['dist']
@@ -212,7 +227,7 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
         can_go_back,
         type_file
     )
-    if parent_name == 'root':
+    if parent_name == 'Шаблоны':
         text = await choose_template_text_root(type_file)
     else:
         text = await choose_template_text_inner(tree.get_parent(cur_node_name))
@@ -225,19 +240,21 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     await update_user_info(state, path, indx_list_start, indx_list_end, can_go_back, child_list)
 
 
-# TODO описание
 @router.callback_query(WalkerState.tags_search, F.data == "ideas_start")
 async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
+    """
+        TODO описание
+    """
+
     reply_text = f'Что хочешь нарисовать?'
     try:
-        with open("./tags_tree.json", "r") as tags_file:
+        with open("./CONFIG/tags_tree.json", "r") as tags_file:
             tags = json.load(tags_file)
     except:
         print('error while reading tags_tree.json')
         text = await error_text()
         await error_final(callback_query, text)
         return
-    # await change_state_to_tags(state, WalkerState.tags_search, files_list, [file_name], [file_path], tags)
 
     await state.update_data(tags=tags)
     reply_markup = await tags_buttons(tags['sub_categories'], False)
@@ -250,13 +267,16 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
     )
 
 
-# TODO описание
 async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, files_list):
+    """
+        TODO описание
+    """
+
     file_name = files_list[0][2]
     file_path = files_list[0][1]
     reply_text = f'Отлично, делаем презентацию в шаблоне <b>{file_name}</b>\nТеперь расскажи, какой слайд нам нужен'
     try:
-        with open("./tags_tree.json", "r") as tags_file:
+        with open("./CONFIG/tags_tree.json", "r") as tags_file:
             tags = json.load(tags_file)
     except:
         print('error while reading tags_tree.json')
@@ -276,6 +296,10 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
 
 
 async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, tag: str):
+    """
+        TODO описание
+    """
+
     # данные по шаблону
     files_list = await get_list_of_files(state)
     if not files_list:
@@ -311,10 +335,8 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     try:
         await send_file_from_local_for_query(callback_query, path_to_save, f'{tag} ({template_name[:-5]}).pptx')
     except:
-        # TODO обработать ошибки
-        print('err2')
+        print('Error while send_file_from_local_for_query in finish_tags_search')
 
-    # reply_markup = await go_back_to_main_menu()
     reply_markup = await ideas_final_buttons()
     await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
@@ -325,9 +347,12 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     remove_template(path_to_save)
 
 
-# @router.callback_query(WalkerState.tags_search)
 @router.callback_query(WalkerState.tags_search, F.data != "ideas_start")
 async def tags_search(callback_query: CallbackQuery, state: FSMContext):
+    """
+        TODO описание
+    """
+
     state_info = await state.get_data()
     tags_on_prev_step_dict = state_info['tags']
     chosen_tag_id = int(callback_query.data) - 1
@@ -335,11 +360,6 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
     # if wanna go back
     if (chosen_tag_id == -1):
         cur_tag = tags_on_prev_step_dict['parent']
-        print('wanna go back')
-        # print(cur_tag)
-        # text = await error_text()
-        # await error_final(callback_query, text)
-        # return
     else:
         cur_tag = tags_on_prev_step_dict['sub_categories'][chosen_tag_id]
         cur_tag['parent'] = tags_on_prev_step_dict
@@ -366,8 +386,11 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
             await error_final(callback_query, text)
 
 
-# TODO описание
 async def finish_template_search(callback_query: CallbackQuery, state: FSMContext):
+    """
+        TODO описание
+    """
+
     files_list = await get_list_of_files(state)
     user_info = await state.get_data()
     type_file = user_info['type_file']
@@ -444,31 +467,24 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
     """
         
     user_info = await state.get_data()
-    files_list = await get_list_of_files(state)
     path = '/'.join(user_info['path'][1:])
     
     # определяем сообщение и имя архива — отдельно обрабатываем корень
     item_name = ''
     try:
         if user_info['path'][-1] == 'Шаблоны':
+            item_name = 'all'
             await callback_query.message.edit_text(
                     text=f"Отправляю шрифты для всех наших презентаций, секунду...",
                     parse_mode=ParseMode.HTML
                 )
-            item_name = 'all'
         else:
-            if len(files_list) == 1:
-                # если отдаем шрифты для шаблона
-                item_name = files_list[0][2]
-            else:
-                # иначе — для БЮ
-                item_name = user_info['path'][-1]
+            # отрезаем два символа – эмоджи и пробел
+            item_name = user_info['path'][-1][2:]
             await callback_query.message.edit_text(
                     text=f"Отправляю шрифты для <b>{item_name}</b>, секунду...",
                     parse_mode=ParseMode.HTML
                 )
-            # удаляем эмоджи и пробел
-            item_name = item_name[2:]
     except:
         print('Proxy error')
     try:
@@ -487,9 +503,12 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
     except:
         print('Proxy error')
 
-# Имитация хождения по директориям при поиске материалов
+
 @router.callback_query(WalkerState.choose_button, F.data != "install_fonts_help")
 async def navigate_template_find(callback_query: CallbackQuery, state: FSMContext):
+    """
+        Имитация хождения по директориям при поиске материалов
+    """
     tree = await load_tree()
     config = await load_config()
 

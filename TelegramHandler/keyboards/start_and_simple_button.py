@@ -5,32 +5,31 @@ import json
 def rows_for_main_menu():
     rows = [
         [InlineKeyboardButton(
-            text='Шаблоны презентаций',
-            callback_data='pres_templates'
-        )],
-        [InlineKeyboardButton(
-            text='Готовые слайды о компании',
-            callback_data='about_company'
-        )],
-        [InlineKeyboardButton(
-            text='Корпоративные шрифты',
-            callback_data='fonts'
-        )],
-        [InlineKeyboardButton(
-            text='Идеи оформления слайдов',
-            # text='Не нажимай, а то заболеешь',
+            text='💡 Идеи оформления слайдов',
             callback_data='search_by_tags'
         )],
         [InlineKeyboardButton(
-            text='Дополнительные материалы',
+            text='🎨 Шаблоны презентаций',
+            callback_data='pres_templates'
+        )],
+        [InlineKeyboardButton(
+            text='🖋 Корпоративные шрифты',
+            callback_data='fonts'
+        )],
+        [InlineKeyboardButton(
+            text='🧩 Дополнительные материалы',
             callback_data='extra_assets'
         )],
         [InlineKeyboardButton(
-            text='Вики команды дизайнеров',
+            text='💼 Готовые слайды о компании',
+            callback_data='about_company'
+        )],
+        [InlineKeyboardButton(
+            text='👩‍🎨 Вики команды дизайнеров',
             callback_data='designer'
         )],
         [InlineKeyboardButton(
-            text='Обратная связь',
+            text='❓ Задать вопрос',
             callback_data='bot_feedback'
         )]
     ]
@@ -115,7 +114,7 @@ async def choose_template_text_root(type_file: str) -> str:
     if type_file == 'search_by_tags':
         return f"Я подскажу варианты, как можно оформить твой контент!\n\n" \
             f"К сожалению, прямо сейчас у я умею работать только с шаблоном Go, но если тебе очень нужен другой, " \
-            f"напиши об этом {json.load(open('./config.json'))['owner']}\n" \
+            f"напиши об этом {json.load(open('./CONFIG/config.json'))['owner']}\n" \
             f"Продолжаем?"
     if type_file == 'about_company':
         return f"У меня подготовлены слайды на двух языках — тебе какие нужны?"

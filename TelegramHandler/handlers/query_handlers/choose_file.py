@@ -24,75 +24,10 @@ router = Router()
 
 
 class WalkerState(StatesGroup):
-    # TODO не только это — изучить и добавить описание
     # In the state we store child_list, indx_list_start\end, can_go_back
     choose_button = State()
     choose_category = State()
     choose_file = State()
-
-
-# @router.callback_query(WalkerState.choose_file, F.data == "next")
-# async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext):
-#     with open("./config.json", "r") as file:
-#         config = json.load(file)
-#         dist_indx = config['dist']
-#
-#         user_info = await state.get_data()
-#         indx_list_end = user_info['indx_list_end']
-#         file_name_list = user_info['file_name_list']
-#         paths_list = user_info['paths_list']
-#
-#         indx_list_start = indx_list_end
-#         indx_list_end = indx_list_end + dist_indx
-#
-#         can_go_right = await check_right(indx_list_end, len(file_name_list))
-#         can_go_left = await check_left(indx_list_start)
-#
-#         reply_markup = await choose_file_kb_query(file_name_list[indx_list_start:indx_list_end], can_go_left,
-#                                                   can_go_right)
-#         text = await choose_one_file(
-#             file_name_list[indx_list_start:indx_list_end],
-#             paths_list[indx_list_start:indx_list_end]
-#         )
-#
-#         await callback_query.message.edit_text(
-#             text=text,
-#             reply_markup=reply_markup
-#         )
-#
-#         await update_user_indx(state, indx_list_start, indx_list_end)
-
-
-# @router.callback_query(WalkerState.choose_file, F.data == "prev")
-# async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext):
-#     with open("./config.json", "r") as file:
-#         config = json.load(file)
-#         dist_indx = config['dist']
-#
-#         user_info = await state.get_data()
-#         indx_list_start = user_info['indx_list_start']
-#         indx_list_end = user_info['indx_list_end']
-#         file_name_list = user_info['file_name_list']
-#         paths_list = user_info['paths_list']
-#
-#         indx_list_start -= dist_indx
-#         indx_list_end -= dist_indx
-#
-#         can_go_right = await check_right(indx_list_end, len(file_name_list))
-#         can_go_left = await check_left(indx_list_start)
-#
-#         reply_markup = await choose_file_kb_query(file_name_list[indx_list_start:indx_list_end], can_go_left,
-#                                                   can_go_right)
-#         text = await choose_one_file(
-#             file_name_list[indx_list_start:indx_list_end],
-#             paths_list[indx_list_start:indx_list_end]
-#         )
-#
-#         await callback_query.message.edit_text(
-#             text=text,
-#             reply_markup=reply_markup
-#         )
-#         await update_user_indx(state, indx_list_start, indx_list_end)
 
 
 @router.callback_query(WalkerState.choose_file, F.data == "get_fonts")
@@ -111,13 +46,14 @@ async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
             text="Отправляю..."
         )
     except:
-        print('Error')
+        text = await error_text()
+        await error_final(callback_query, text)
+        return
+    
     try:
         path = list_fonts[0][1] + '/' + list_fonts[0][3]
         link = get_download_link(path)
         await download_with_link_query(callback_query, link, 'fonts.zip')
-        # template_name = user_info['path'][-1]
-        # await download_with_link_query(callback_query, link, f'Шрифты для ({template_name[1:]}).zip')
 
         reply_markup = await how_to_install_fonts_buttons()
         await try_to_delete_message(callback_query)
@@ -154,7 +90,7 @@ async def send_info(callback_query: CallbackQuery):
 # TODO описание функции
 @router.callback_query(WalkerState.choose_file)
 async def choose_category(callback_query: CallbackQuery, state: FSMContext):
-    with open("./config.json", "r") as file:
+    with open("./CONFIG/config.json", "r") as file:
         config = json.load(file)
         dist_index = config['dist']
         user_info = await state.get_data()
@@ -183,19 +119,17 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                 break
 
         if type_file == 'template':
-
+            full_path = str(file_path) + '/' + str(file_name)
             try:
-                link = get_download_link(str(file_path) + '/' + str(file_name))
-                file_size = get_file_size(str(file_path) + '/' + str(file_name))
+                link = get_download_link(full_path)
+                file_size = get_file_size(full_path)
             except Exception:
-                # await callback_query.message.edit_text(
-                #     text="Не удалось найти данный файл, возможно он был перемещён или удалён."
-                # )
                 text = await error_text()
                 await error_final(callback_query, text)
                 template_info = TemplateInfo(str(file_name), str(file_path))
                 template_id = get_template_id_by_name(template_info.path, template_info.name)
                 delete_template(template_id)
+                print("Error while getting info for ", str(file_path) + '/' + str(file_name))
                 return
 
             # TODO перенести проверку в отдельную функцию и проверить, где еще она нужна
@@ -234,33 +168,3 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                 reply_markup=reply_markup
             )
             pass
-
-        if type_file == 'font':
-            font_name = get_fonts_by_template_id(file_id)
-            if len(font_name) == 0:
-                text = await error_text()
-                await error_final(callback_query, text)
-                return
-            try:
-                link = get_download_link(file_path + '/' + font_name[0][3])
-            except Exception:
-                text = await error_text()
-                await error_final(callback_query, text)
-                return
-            try:
-                await callback_query.message.edit_text(
-                    text="Отправляю, секунду..."
-                )
-            except:
-                print('Error')
-            try:
-                await download_with_link_query(callback_query, link, 'fonts.zip')
-                reply_markup = await get_fonts_buttons()
-                await try_to_delete_message(callback_query)
-                await callback_query.bot.send_message(
-                    chat_id=callback_query.message.chat.id,
-                    text="Готово!",
-                    reply_markup=reply_markup
-                )
-            except:
-                print('Font send error')

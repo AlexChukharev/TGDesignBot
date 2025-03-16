@@ -45,10 +45,10 @@ async def cmd_start_handler(message: Message, state: FSMContext):
         parse_mode=ParseMode.HTML
     )
     await message.answer_photo(
-        FSInputFile(path="test3.png")
+        FSInputFile(path="./Data/Appdata/Images/start.png")
     )
     await message.answer(
-        text="Ищешь что-то?",
+        text="Чем могу помочь?",
         reply_markup=reply_markup
     )
 
@@ -64,7 +64,7 @@ async def main_start_handler(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
     reply_markup = await main_menu_buttons_from_query()
     await callback_query.message.edit_text(
-        f'Ищешь что-то?',
+        f'Чем могу помочь?',
         reply_markup=reply_markup
     )
 
@@ -82,6 +82,6 @@ async def cmd_cancel_handler(message: Message, state: FSMContext):
     await state.clear()
     reply_markup = await main_menu_buttons_from_query()
     await message.answer(
-        text="Ищешь что-то?",
+        text="Чем могу помочь?",
         reply_markup=reply_markup
     )

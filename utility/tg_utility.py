@@ -55,12 +55,6 @@ async def get_list_of_files(state: FSMContext) -> list:
     elif list_of_path[0] == "Корпоративные шрифты":
         path = '/'.join(list_of_path[1:])
         list_of_files = await get_templates_from_child_directories(path)
-    # elif list_of_path[0] == "Изображения":
-    #     path = '/'.join(list_of_path[1:])
-    #     list_of_files = get_images_from_child_directories(path)
-    # elif list_of_path[0] == "Готовые слайды о компании":
-    #     path = '/'.join(list_of_path[1:])
-    #     list_of_files = await get_templates_from_child_directories(path)
     else:
         path = '/'.join(list_of_path[1:])
         list_of_files = await get_templates_from_child_directories(path)
@@ -245,14 +239,11 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name
                 print('error while reading url')
                 print(X)
         merge_fonts(user_zip_path, path_to_zip, zip_name)
-        # await send_file_from_local_for_query(callback_query, path_to_zip, f'Шрифты {zip_name}.zip')
         await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name}.zip')
     except:
-        # TODO использовать общее сообщение об ошибке
+        text = await error_text()
         await callback_query.answer(
-            # text=f'Что-то пошло не так :( Сообщи '
-            #       f'{json.load(open("./config.json"))["owner"]} или попробуй позже'
-            text=f'Что-то пошло не так :( Сообщи нам об этом или попробуй позже'
+            text=text
         )
 
     # удаляем временные файлы
@@ -318,7 +309,6 @@ def merge_fonts(input_folder, output_zip, dir_name):
                                 if font_file not in unique_files:
                                     unique_files.add(font_file)
                                     try:
-                                        print(font_file)
                                         file_data = zip_ref.read(font_file)
                                         output_zip_file.writestr(
                                             os.path.join(
@@ -347,8 +337,7 @@ async def error_text() -> str:
     """
         Текст для пользователя о видимых ошибках
     """
-    return f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./config.json'))['owner']} или попробуй позже"
-    # return f"Что-то пошло не так :( Сообщи нам о проблеме или попробуй позже"
+    return f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./CONFIG/config.json'))['owner']} или попробуй позже"
 
 
 async def error_final(callback_query: CallbackQuery, text: str):

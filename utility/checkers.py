@@ -10,25 +10,17 @@ def is_admin(id: int) -> bool:
     """
         Правда ли, что у пользователя с данным id есть админские права (на данный момент не используется)
     """
-    with open("admins.json", "r") as file:
+    with open("./CONFIG/admins.json", "r") as file:
         config = json.load(file)
         admins_list = config["admin_id"]
         return id in admins_list
-
-
-def is_user_test(id: int) -> bool:
-    """
-        Проверка, есть ли у пользователя доступ к боту
-        Используется в тесте
-    """
-    return check_user_id_in_list(id)
 
 
 def check_user_id_in_list(id: int) -> bool:
     """
         Проверяет, есть ли id пользователя в users.json
     """
-    with open("users.json", "r") as file:
+    with open("./CONFIG/users.json", "r") as file:
         config = json.load(file)
         users_list = config["user_id"]
         return id in users_list
@@ -60,7 +52,12 @@ async def is_user(id: int, username: str) -> bool:
     if username is None:
         return False
 
-    return (await check_username_by_staff(username)) or check_user_id_in_list(id)
+    with open("./CONFIG/config.json", "r") as jsonFile:
+        data = json.load(jsonFile)
+        if data["test_mode"]:
+            return True
+        else:
+            return (await check_username_by_staff(username)) or check_user_id_in_list(id)
 
 
 def file_size_in_limit(file_size: int) -> bool:

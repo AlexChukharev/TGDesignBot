@@ -66,8 +66,12 @@ def __search_in_directory__(directory: str,
 def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaDiskInfo):
     check_token(ya_disk)
     try:
-        # __search_in_directory__('/TelegramBotFastTest/', last_updated_time, ya_disk_info)
-        __search_in_directory__('/TelegramBot/', last_updated_time, ya_disk_info)
+        with open("./CONFIG/config.json", "r") as jsonFile:
+            data = json.load(jsonFile)
+            if data["test_mode"]:
+                __search_in_directory__('/TelegramBotFastTest/', last_updated_time, ya_disk_info)
+            else:
+                __search_in_directory__('/TelegramBot/', last_updated_time, ya_disk_info)
     except Exception as e:
         ya_disk_info.clear()
         raise Exception("Can't find any files")
@@ -100,8 +104,7 @@ def __add_nodes__(directory: str, last_updated_time, tree: Tree):
     for item in ya_disk.listdir(directory):
         if item.is_dir() and (not is_images(item)) and (not is_font(item)):
             if last_updated_time < item.created:
-                # if directory == "/TelegramBotFastTest/":
-                if directory == "/TelegramBot/":
+                if (directory == "/TelegramBot/") or (directory == "/TelegramBotFastTest/"):
                     tree.insert("root", item.name)
                 else:
                     tree.insert(directory[directory.rfind('/') + 1:], item.name)
@@ -112,19 +115,23 @@ def __add_nodes__(directory: str, last_updated_time, tree: Tree):
 def update_tree(tree: Tree, last_updated_time):
     check_token(ya_disk)
     __delete_nodes__('/', tree)
-    # __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree)
-    __add_nodes__('/TelegramBot/', last_updated_time, tree)
+    with open("./CONFIG/config.json", "r") as jsonFile:
+        data = json.load(jsonFile)
+        if data["test_mode"]:
+            __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree)
+        else:
+            __add_nodes__('/TelegramBot/', last_updated_time, tree)
     with open("./Tree/ObjectTree.pkl", "wb") as fp:
         pickle.dump(tree, fp)
 
     # Updating last_updated_time in json.
     last_updated_time = datetime.datetime.now(tz=datetime.timezone.utc)
-    with open("./config.json", "r") as jsonFile:
+    with open("./CONFIG/config.json", "r") as jsonFile:
         data = json.load(jsonFile)
 
     data["last-update-time"] = last_updated_time.isoformat()
 
-    with open("./config.json", "w") as jsonFile:
+    with open("./CONFIG/config.json", "w") as jsonFile:
         json.dump(data, jsonFile)
 
 
