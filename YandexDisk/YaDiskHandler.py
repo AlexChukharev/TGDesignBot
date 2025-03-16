@@ -1,3 +1,4 @@
+import logging
 import datetime
 import json
 import os
@@ -12,8 +13,10 @@ from DBHandler import delete_template
 
 from .YaDiskInfo import TemplateInfo
 
+
 load_dotenv()
 ya_disk = yadisk.YaDisk(token=str(os.getenv('YANDEX_DISK_TOKEN')))
+logger = logging.getLogger(__name__)
 
 
 # Takes item from YaDisk and checking is it a photo directory.
@@ -173,7 +176,7 @@ def delete_from_disk(path: str):
             try:
                 os.remove('./Data/Templates/' + path[path.rfind('/') + 1:])
             except FileNotFoundError:
-                print('Данного файла нет на локальном диске')
+                logger.info('Данного файла нет на локальном диске')
             template_info = TemplateInfo(path[path.rfind('/') + 1:], path[:path.rfind('/')])
             template_id = get_template_id_by_name(template_info.path, template_info.name)
             delete_template(template_id)

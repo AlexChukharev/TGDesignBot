@@ -1,5 +1,9 @@
+import logging
 import psycopg2
 from DBHandler.config import load_config
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_tables():
@@ -58,7 +62,7 @@ def create_tables():
                 for command in commands:
                     cur.execute(command)
     except (psycopg2.DatabaseError, Exception) as error:
-        print(error)
+        logger.info(error)
 
 
 if __name__ == "__main__":

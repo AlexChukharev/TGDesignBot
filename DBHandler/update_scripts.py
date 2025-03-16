@@ -1,5 +1,9 @@
+import logging
 import psycopg2
 from config import load_config
+
+
+logger = logging.getLogger(__name__)
 
 
 def update_user(user_id, role: str):
@@ -15,4 +19,4 @@ def update_user(user_id, role: str):
                 cur.execute(sql, (role, user_id))
             conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.info(error)

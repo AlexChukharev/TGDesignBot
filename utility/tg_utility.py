@@ -1,24 +1,30 @@
+import logging
 import json
+import os
 
-from aiogram.exceptions import TelegramNetworkError
-from aiogram.methods import send_document
+import urllib.request
+import shutil
+import zipfile
+import io
+import aiohttp
 
 from DBHandler import (get_templates_from_child_directories,
                                    get_fonts_from_child_directories)
+
+from aiogram.exceptions import TelegramNetworkError
+from aiogram.methods import send_document
 from aiogram.fsm.context import FSMContext
 from aiogram import types
 from aiogram.types import CallbackQuery
-import io
-import aiohttp
+
 from aiogram.enums import ChatAction, ParseMode
 from aiogram.utils.chat_action import ChatActionSender
-import urllib.request
-import os
-import shutil
-import zipfile
 
 from TelegramHandler.keyboards import go_back_to_main_menu
 from YandexDisk import get_download_link
+
+
+logger = logging.getLogger(__name__)
 
 
 async def can_go_right(indx_list_end: int, len_child_list: int) -> bool:
@@ -235,16 +241,17 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name
             try:
                 urllib.request.urlretrieve(link, user_zip_path + f'/{counter}_{file[3]}')
                 counter += 1
-            except Exception as X:
-                print('error while reading url')
-                print(X)
+            except Exception as e:
+                logger.info('error while reading url')
+                logger.info(e)
         merge_fonts(user_zip_path, path_to_zip, zip_name)
         await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name}.zip')
-    except:
+    except Exception as e:
         text = await error_text()
         await callback_query.answer(
             text=text
         )
+        logger.info(e)
 
     # удаляем временные файлы
     shutil.rmtree(user_zip_path)
@@ -262,7 +269,7 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_
 
     # отдельно обрабатываем кейс, если не нашли шрифты
     if len(list_fonts) == 0:
-        print('expected fonts not found')
+        logger.info('expected fonts not found')
         reply_markup = await go_back_to_main_menu()
         await callback_query.message.edit_text(
             text='По данному запросу не найдено ни одного шрифта!',
@@ -275,18 +282,18 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_
             chat_id=callback_query.message.chat.id,
             action=ChatAction.UPLOAD_DOCUMENT,
         )
-    except:
-        # TODO обработать ошибки
-        print('cannot set UPLOAD_DOCUMENT telegram action')
+    except Exception as e:
+        logger.info('cannot set UPLOAD_DOCUMENT telegram action')
+        logger.info(e)
     try:
         async with ChatActionSender.upload_document(
             bot=callback_query.bot,
             chat_id=callback_query.message.chat.id,
         ):
             await send_zips_for_query(callback_query, list_fonts, zip_name)
-    except:
-        # TODO обработать ошибки
-        print('Error while sendng fonts zip')
+    except Exception as e:
+        logger.info('Error while sendng fonts zip')
+        logger.info(e)
 
 
 def merge_fonts(input_folder, output_zip, dir_name):
@@ -318,8 +325,9 @@ def merge_fonts(input_folder, output_zip, dir_name):
                                             file_data,
                                             compress_type=zipfile.ZIP_DEFLATED,
                                         )
-                                    except:
-                                        print('Cant add font to zip')
+                                    except Exception as e:
+                                        logger.info('Cant add font to zip')
+                                        logger.info(e)
 
 
 async def try_to_delete_message(callback_query: CallbackQuery):
@@ -328,9 +336,9 @@ async def try_to_delete_message(callback_query: CallbackQuery):
     """
     try:
         await callback_query.message.delete()
-    except:
-        print('tryng to delete old message (after 48 hours)')
-        pass
+    except Exception as e:
+        logger.info('tryng to delete old message (after 48 hours)')
+        logger.info(e)
 
 
 async def error_text() -> str:

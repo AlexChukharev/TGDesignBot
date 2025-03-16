@@ -1,6 +1,7 @@
+import logging 
 import json
-from telegram.constants import ParseMode
 
+from aiogram.enums import ParseMode
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -20,7 +21,9 @@ from YandexDisk import get_download_link, get_file_size
 
 from ...keyboards import go_back_to_main_menu, how_to_install_fonts_buttons, get_fonts_buttons
 
+
 router = Router()
+logger = logging.getLogger(__name__)
 
 
 class WalkerState(StatesGroup):
@@ -45,9 +48,10 @@ async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
         await callback_query.message.edit_text(
             text="Отправляю..."
         )
-    except:
+    except Exception as e:
         text = await error_text()
         await error_final(callback_query, text)
+        logger.info(e)
         return
     
     try:
@@ -62,8 +66,8 @@ async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
             text="Готово!",
             reply_markup=reply_markup
         )
-    except:
-        pass
+    except Exception as e:
+        logger.info(e)
 
 
 @router.callback_query(WalkerState.choose_file, F.data == "install_fonts_help")
@@ -73,8 +77,8 @@ async def send_info(callback_query: CallbackQuery):
         await callback_query.message.edit_text(
             text='Готовлю инструкцию, секунду'
         )
-    except:
-        print('Proxy error')
+    except Exception as e:
+        logger.info(e)
     path = './Data/Appdata/Инструкция по установке шрифтов.pdf'
     await send_file_from_local_for_query(callback_query, path, 'Инструкция по установке шрифтов.pdf')
     reply_markup = await go_back_to_main_menu()
@@ -123,13 +127,14 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
             try:
                 link = get_download_link(full_path)
                 file_size = get_file_size(full_path)
-            except Exception:
+            except Exception as e:
                 text = await error_text()
                 await error_final(callback_query, text)
                 template_info = TemplateInfo(str(file_name), str(file_path))
                 template_id = get_template_id_by_name(template_info.path, template_info.name)
                 delete_template(template_id)
-                print("Error while getting info for ", str(file_path) + '/' + str(file_name))
+                logger.info("Error while getting info for ", str(file_path) + '/' + str(file_name))
+                logger.info(e)
                 return
 
             # TODO перенести проверку в отдельную функцию и проверить, где еще она нужна
@@ -147,9 +152,10 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                         reply_markup=reply_markup
                     )
 
-                except:
+                except Exception as e:
                     text = await error_text()
                     await error_final(callback_query, text)
+                    logger.info(e)
                     return
             else:
                 reply_markup = await get_fonts_buttons()
@@ -167,4 +173,3 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                 text="Попался :(",
                 reply_markup=reply_markup
             )
-            pass

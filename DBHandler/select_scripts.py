@@ -1,5 +1,9 @@
+import logging
 import psycopg2
 from DBHandler.config import load_config
+
+
+logger = logging.getLogger(__name__)
 
 
 def get_user_role(user_id) -> str | None:
@@ -17,7 +21,7 @@ def get_user_role(user_id) -> str | None:
                     return None
 
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.info(error)
 
 
 def is_user_admin(user_id) -> bool:
@@ -39,7 +43,7 @@ def __get_list_of_obj__(sql, *obj) -> list:
                     row = cur.fetchone()
 
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.info(error)
 
     finally:
         return list_of_obj

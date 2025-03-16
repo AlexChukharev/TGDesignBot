@@ -1,5 +1,9 @@
+import logging
 import psycopg2
 from DBHandler.config import load_config
+
+
+logger = logging.getLogger(__name__)
 
 
 def drop_tables():
@@ -19,4 +23,4 @@ def drop_tables():
                 for command in commands:
                     cur.execute(command)
     except (psycopg2.DatabaseError, Exception) as error:
-        print(error)
+        logger.info(error)

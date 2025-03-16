@@ -1,5 +1,9 @@
+import logging
 import psycopg2
 from DBHandler.config import load_config
+
+
+logger = logging.getLogger(__name__)
 
 
 # Delete template by id.
@@ -13,4 +17,4 @@ def delete_template(template_id):
                 cur.execute(sql, (template_id,))
             conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.info(error)

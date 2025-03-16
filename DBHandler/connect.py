@@ -1,5 +1,9 @@
+import logging
 import psycopg2
 from DBHandler.config import load_config
+
+
+logger = logging.getLogger(__name__)
 
 
 def connect(config):
@@ -9,7 +13,7 @@ def connect(config):
         with psycopg2.connect(**config) as conn:
             return conn
     except (psycopg2.DatabaseError, Exception) as error:
-        print(error)
+        logger.info(error)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -13,8 +15,7 @@ from ..keyboards.start_and_simple_button import main_menu_buttons_from_query
 
 
 router = Router()
-
-users = [928962436, 58566456, 170108064]
+logger = logging.getLogger(__name__)
 
 
 class UserStates(StatesGroup):
@@ -56,7 +57,7 @@ async def cmd_start_handler(message: Message, state: FSMContext):
 @router.callback_query(F.data == "main_menu")
 async def main_start_handler(callback_query: CallbackQuery, state: FSMContext):
     has_access = await is_user(callback_query.from_user.id, callback_query.from_user.username)
-    print(callback_query.from_user.username)
+    logger.info(callback_query.from_user.username)
     if not has_access:
         await error_no_access(callback_query)
         return

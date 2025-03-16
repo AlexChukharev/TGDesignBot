@@ -1,8 +1,12 @@
+import logging
 import psycopg2
 from DBHandler.config import load_config
 from YandexDisk.YaDiskInfo import TemplateInfo, FontInfo, ImageInfo
 from pptxHandler import pptxHandler
 from . import select_scripts as select_scripts
+
+
+logger = logging.getLogger(__name__)
 
 
 # This func takes a sql query and pack of values. Do query with unpacked values
@@ -20,7 +24,7 @@ def __insert_single_value__(sql, *obj) -> int:
                 # commit the changes to the database
                 conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.info(error)
 
     finally:
         return obj_id
@@ -39,7 +43,7 @@ def __insert_many_values__(sql, list_of_values: list):
                 # commit the changes to the database
                 conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.info(error)
 
 
 # Insert a new user into the users table

@@ -1,3 +1,4 @@
+import logging
 import json
 import pickle
 
@@ -49,6 +50,7 @@ from DBHandler import (
 from pptxHandler import get_template_of_slides, SlideInfo, remove_template
 
 router = Router()
+logger = logging.getLogger(__name__)
 
 
 class WalkerState(StatesGroup):
@@ -250,8 +252,9 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
     try:
         with open("./CONFIG/tags_tree.json", "r") as tags_file:
             tags = json.load(tags_file)
-    except:
-        print('error while reading tags_tree.json')
+    except Exception as e:
+        logger.info('error while reading tags_tree.json')
+        logger.info(e)
         text = await error_text()
         await error_final(callback_query, text)
         return
@@ -278,8 +281,9 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
     try:
         with open("./CONFIG/tags_tree.json", "r") as tags_file:
             tags = json.load(tags_file)
-    except:
-        print('error while reading tags_tree.json')
+    except Exception as e:
+        logger.info('error while reading tags_tree.json')
+        logger.info(e)
         text = await error_text()
         await error_final(callback_query, text)
         return
@@ -318,9 +322,8 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
         await callback_query.message.edit_text(
             text='Принято. Сейчас подготовлю варианты и отправлю, это может занять пару минут'
         )
-    except:
-        # TODO обработать ошибки
-        print('error2')
+    except Exception as e:
+        logger.info(e)
 
     # TODO все, что ниже – надо изучить, выглядит странно
     path_to_save = f'./Data/slides/{callback_query.message.from_user.id}.pptx'
@@ -334,8 +337,9 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     get_template_of_slides(path_to_save, slide_info)
     try:
         await send_file_from_local_for_query(callback_query, path_to_save, f'{tag} ({template_name[:-5]}).pptx')
-    except:
-        print('Error while send_file_from_local_for_query in finish_tags_search')
+    except Exception as e:
+        logger.info('Error while send_file_from_local_for_query in finish_tags_search')
+        logger.info(e)
 
     reply_markup = await ideas_final_buttons()
     await try_to_delete_message(callback_query)
@@ -381,7 +385,7 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
             await finish_tags_search(callback_query, state, cur_tag['tag'])
         else:
             # такого вообще не должно быть
-            print('error in tags_search while getting tag')
+            logger.info('error in tags_search while getting tag')
             text = await error_text()
             await error_final(callback_query, text)
 
@@ -407,7 +411,6 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     try:
         link = get_download_link(str(file_path) + '/' + str(file_name))
         file_size = get_file_size(str(file_path) + '/' + str(file_name))
-        print(file_size)
     except Exception:
         reply_markup = await go_back_to_main_menu()
         template_info = TemplateInfo(str(file_name), str(file_path))
@@ -445,9 +448,10 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
                     text="Держи файл! И не забудь установить корпоративные шрифты",
                     reply_markup=reply_markup
                 )
-        except:
+        except Exception as e:
             text = await error_text()
             await error_final(callback_query, text)
+            logger.info(e)
             return
     else:
         reply_markup = await get_fonts_buttons()
@@ -485,12 +489,13 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
                     text=f"Отправляю шрифты для <b>{item_name}</b>, секунду...",
                     parse_mode=ParseMode.HTML
                 )
-    except:
-        print('Proxy error')
+    except Exception as e:
+        logger.info(e)
     try:
         zip_name = f'Шрифты {item_name}'
         await start_send_fonts_for_query(callback_query, path, zip_name)
-    except:
+    except Exception as e:
+        logger.info(e)
         return
     try:
         reply_markup = await how_to_install_fonts_buttons()
@@ -500,8 +505,8 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
             text='Готово!',
             reply_markup=reply_markup
         )
-    except:
-        print('Proxy error')
+    except Exception as e:
+        logger.info(e)
 
 
 @router.callback_query(WalkerState.choose_button, F.data != "install_fonts_help")

@@ -1,4 +1,7 @@
 import logging
+from logging.handlers import TimedRotatingFileHandler
+from logging import Formatter
+
 import os
 from dotenv import load_dotenv
 
@@ -46,12 +49,20 @@ async def main():
 
 
 async def start_bot():
-    logging.basicConfig(level=logging.INFO)
+    if not os.path.exists("./logs"):
+        os.mkdir("./logs")
+    handler = TimedRotatingFileHandler(filename='./logs/runtime.log', when='D', interval=1, backupCount=90, encoding='utf-8', delay=False)
+    formatter = Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    logging.basicConfig(level=logging.INFO, handlers=[handler])
+    logger = logging.getLogger(__name__)
+    logger.info('Logger has been setuped!')
+
     try:
         # Start bot
         await main()
     except:
-        print('Exit')
+        logger.info('Exit')
 
 
 if __name__ == '__main__':
