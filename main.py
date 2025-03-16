@@ -22,10 +22,10 @@ async def main():
     # Initialize DataBase.
     initialize_database()
 
-    # AutoUpdating information from YaDisk every 5 hours.
-    # scheduler = BackgroundScheduler()
-    # scheduler.add_job(update_tree_and_db, "interval", hours=5)
-    # scheduler.start()
+    # AutoUpdating information from YaDisk every 12 hours.
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(update_tree_and_db, "interval", hours=12)
+    scheduler.start()
 
     await TGbot.start_bot()
 
