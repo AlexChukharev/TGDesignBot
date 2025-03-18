@@ -24,7 +24,7 @@ from utility.tg_utility import (
     try_to_delete_message
 )
 
-from ...keyboards.start_and_simple_button import (
+from ...keyboards.buttons import (
     choose_template_text_inner,
     choose_template_text_root,
     choose_category_callback,

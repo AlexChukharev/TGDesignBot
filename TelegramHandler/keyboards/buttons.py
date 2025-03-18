@@ -120,23 +120,6 @@ async def choose_template_text_root(type_file: str) -> str:
         return f"У меня подготовлены слайды на двух языках — тебе какие нужны?"
     if type_file == 'extra_assets':
         return f"Здесь собраны универсальные элементы, которые можно использовать в любых презентациях\nЧто тебя интересует?"
-        # return f"Что тебя интересует?"
-
-
-# async def choose_one_file(key_list: list, paths_list: list) -> str:
-#     text = "Выберите один из файлов для установки \n \n"
-#     text += await key_list_with_paths(key_list, paths_list)
-#     return text
-
-
-# async def key_list_with_paths(key_list: list, path_list: list) -> str:
-#     text = ""
-#     counter = 1
-#     for elem_num in range(len(key_list)):
-#         text += f"{counter}. {key_list[elem_num]} \n"
-#         text += f"Путь: {path_list[elem_num]} \n \n"
-#         counter += 1
-#     return text
 
 
 async def choose_category_callback(key_list: list, can_go_left: bool, can_go_right: bool,
@@ -144,7 +127,6 @@ async def choose_category_callback(key_list: list, can_go_left: bool, can_go_rig
     rows = []
     counter = 1
     for elem in key_list:
-        # if not(elem in ['Готовые структуры', 'Advanced']):
         rows.append([
             InlineKeyboardButton(
                 text=elem,
@@ -231,7 +213,6 @@ async def tags_buttons(tags: list, can_go_back: bool) -> InlineKeyboardMarkup:
             )
         ])
         counter += 1
-    # rows.append(row_back_to_main_menu())
     if (can_go_back):
         rows.append(
             [go_back_in_tags_inline_button(), main_menu_inline_button()]
@@ -241,46 +222,15 @@ async def tags_buttons(tags: list, can_go_back: bool) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
 
+
 def search_by_tags_from_start_button() -> InlineKeyboardButton:
     return InlineKeyboardButton(
         text='Посмотреть другие идеи',
         callback_data='ideas_start'
     )
 
+
 async def ideas_final_buttons() -> InlineKeyboardMarkup:
     rows = [[search_by_tags_from_start_button()], row_back_to_main_menu()]
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
-
-
-# async def choose_file_kb_query(key_list: list, can_go_left: bool, can_go_right: bool) -> InlineKeyboardMarkup:
-#     rows = await choose_file_kb_query_handler(key_list, can_go_left, can_go_right)
-#     rows.append(row_back_to_main_menu())
-#     markup = InlineKeyboardMarkup(inline_keyboard=rows)
-#     return markup
-
-
-# async def choose_file_kb_query_handler(key_list: list, can_go_left: bool, can_go_right: bool) -> list:
-#     nums_for_choose = [
-#         InlineKeyboardButton(
-#             text=str(x),
-#             callback_data=str(x)
-#         ) for x in range(1, key_list.__len__() + 1)
-#     ]
-#     rows = [nums_for_choose]
-#
-#     if can_go_left and can_go_right:
-#         rows.append([
-#             prev_inline_button(),
-#             next_inline_button()
-#         ])
-#     elif can_go_right:
-#         rows.append([
-#             next_inline_button()
-#         ])
-#     elif can_go_left:
-#         rows.append([
-#             prev_inline_button()
-#         ])
-#
-#     return rows

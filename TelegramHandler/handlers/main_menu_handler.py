@@ -11,7 +11,7 @@ from aiogram.enums import ParseMode
 from utility.checkers import is_user
 from utility.tg_utility import no_access_text, error_no_access
 
-from ..keyboards.start_and_simple_button import main_menu_buttons_from_query
+from ..keyboards.buttons import main_menu_buttons_from_query
 
 
 router = Router()
