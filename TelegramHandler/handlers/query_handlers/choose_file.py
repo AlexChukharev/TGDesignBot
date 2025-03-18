@@ -166,10 +166,3 @@ async def choose_category(callback_query: CallbackQuery, state: FSMContext):
                     parse_mode=ParseMode.HTML,
                     reply_markup=reply_markup
                 )
-
-        if type_file == 'search_by_tags':
-            reply_markup = await go_back_to_main_menu()
-            await callback_query.message.edit_text(
-                text="Попался :(",
-                reply_markup=reply_markup
-            )
