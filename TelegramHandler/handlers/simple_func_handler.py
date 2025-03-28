@@ -26,7 +26,7 @@ async def cmd_feedback(message: Message, state: FSMContext):
     
     await state.clear()
     reply_markup = await go_back_to_main_menu()
-    text = f"По любым проблемам с ботом или материалами обязательно пиши {json.load(open('./CONFIG/config.json'))['owner']}"
+    text = f"По любым проблемам, связанным с ботом или материалами, обязательно пиши {json.load(open('./CONFIG/config.json'))['owner']}"
     await message.answer(
         text=text,
         parse_mode=ParseMode.HTML,
@@ -37,7 +37,7 @@ async def cmd_feedback(message: Message, state: FSMContext):
 @router.callback_query(F.data == "bot_feedback")
 async def cmd_feedback(callback_query: CallbackQuery):
     reply_markup = await go_back_to_main_menu()
-    text = f"По любым вопросам, связанным с ботом или материалами пиши {json.load(open('./CONFIG/config.json'))['owner']}"
+    text = f"По любым вопросам, связанным с ботом или материалами, пиши {json.load(open('./CONFIG/config.json'))['owner']}"
     await callback_query.message.edit_text(
         text=text,
         parse_mode=ParseMode.HTML,

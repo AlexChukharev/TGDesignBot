@@ -10,8 +10,9 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import BotCommand
 
 from TelegramHandler.handlers import (simple_func_handler,
-                                                  main_menu_handler,
-                                                  no_handled)
+                                      main_menu_handler,
+                                      no_handled,
+                                      feedback_handler)
 from TelegramHandler.handlers.query_handlers import walker_menu as q_walker_menu
 from TelegramHandler.handlers.query_handlers import choose_file as q_choose_file
 
@@ -38,6 +39,7 @@ async def main():
         q_walker_menu.router,
         q_choose_file.router,
         simple_func_handler.router,
+        feedback_handler.router,
         # обработка потерянных и некорректных сообщений
         no_handled.router
     )

@@ -31,6 +31,7 @@ class UserStates(StatesGroup):
 @router.message(Command("start"))
 async def cmd_start_handler(message: Message, state: FSMContext):
     has_access = await is_user(message.from_user.id, message.from_user.username)
+    logger.info(message.from_user.username)
     if not has_access:
         await message.answer(
         text=no_access_text()
@@ -41,7 +42,7 @@ async def cmd_start_handler(message: Message, state: FSMContext):
     reply_markup = await main_menu_buttons_from_query()
     await message.answer(
         text=f'Привет, {message.from_user.first_name}!\nЯ – бот-помощник команды визуальных коммуникаций. '\
-        f'Могу найти материалы для презентаций, подобрать подходящую визуализацию или помочь поставить задачу команде дизайнеров\n\n'\
+        f'Могу найти материалы для презентаций, подобрать подходящую визуализацию или помочь связаться с командой дизайнеров\n\n'\
         f'Я только начинаю свой путь и стремлюсь развиваться, поэтому буду рад твоей обратной связи и идеям для улучшения!',
         parse_mode=ParseMode.HTML
     )
@@ -74,6 +75,7 @@ async def main_start_handler(callback_query: CallbackQuery, state: FSMContext):
 @router.message(F.text.lower() == "в главное меню")
 async def cmd_cancel_handler(message: Message, state: FSMContext):
     has_access = await is_user(message.from_user.id, message.from_user.username)
+    logger.info(message.from_user.username)
     if not has_access:
         await message.answer(
         text=no_access_text()

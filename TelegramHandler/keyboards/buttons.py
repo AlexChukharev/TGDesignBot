@@ -36,6 +36,47 @@ def rows_for_main_menu():
     return rows
 
 
+def feedback_buttons_row():
+    rows = [
+        InlineKeyboardButton(
+            text='😍',
+            callback_data='feedback_great'
+        ),
+        InlineKeyboardButton(
+            text='🙂',
+            callback_data='feedback_good'
+        ),
+        InlineKeyboardButton(
+            text='😔',
+            callback_data='feedback_bad'
+        )
+    ]
+    return rows
+
+
+async def go_back_to_main_menu_with_feedback() -> InlineKeyboardMarkup:
+    rows = [feedback_buttons_row(), row_back_to_main_menu()]
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+
+def freshness_button() -> InlineKeyboardButton:
+    return InlineKeyboardButton(
+        text='Нашел устаревший лого?',
+        callback_data='freshness_feedback'
+    )
+
+
+async def go_back_to_main_menu_with_feedback_and_freshness() -> InlineKeyboardMarkup:
+    rows = [
+        feedback_buttons_row(), 
+        [freshness_button()],
+        row_back_to_main_menu()
+    ]
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+
 def row_back_to_main_menu():
     return [main_menu_inline_button()]
 
@@ -87,6 +128,21 @@ async def get_fonts_buttons() -> InlineKeyboardMarkup:
     return markup
 
 
+async def get_fonts_buttons_with_feedback() -> InlineKeyboardMarkup:
+    rows = [
+        feedback_buttons_row(),
+        [
+            InlineKeyboardButton(
+                text='Скачать необходимые шрифты',
+                callback_data='get_fonts'
+            )
+        ],
+        row_back_to_main_menu()
+    ]
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+
 async def how_to_install_fonts_buttons():
     rows = [
         [
@@ -102,7 +158,7 @@ async def how_to_install_fonts_buttons():
 
 
 async def choose_template_text_inner(folder: str) -> str:
-    text = f"У нас есть несколько шаблонов для подразделения {folder}\nКакой тебе нужен?\n \n"
+    text = f"У нас есть несколько шаблонов для подразделения <b>{folder}</b>\nКакой тебе нужен?\n \n"
     return text
 
 
@@ -112,10 +168,8 @@ async def choose_template_text_root(type_file: str) -> str:
     if type_file == 'font':
         return f"У нас очень много шрифтов — тебе для какого подразделения нужны?\n"
     if type_file == 'search_by_tags':
-        return f"Я подскажу варианты, как можно оформить твой контент!\n\n" \
-            f"К сожалению, прямо сейчас у я умею работать только с шаблоном Go, но если тебе очень нужен другой, " \
-            f"напиши об этом {json.load(open('./CONFIG/config.json'))['owner']}\n" \
-            f"Продолжаем?"
+        return f"Я подскажу варианты, как можно оформить твой контент!\n" \
+            f"В каком шаблоне работаешь?"
     if type_file == 'about_company':
         return f"У меня подготовлены слайды на двух языках — тебе какие нужны?"
     if type_file == 'extra_assets':
@@ -202,7 +256,7 @@ def go_back_in_tags_inline_button() -> InlineKeyboardButton:
     )
 
 
-async def tags_buttons(tags: list, can_go_back: bool) -> InlineKeyboardMarkup:
+async def tags_buttons(tags: list, can_go_back: bool, need_another_button: bool) -> InlineKeyboardMarkup:
     rows = []
     counter = 1
     for tag in tags:
@@ -213,6 +267,13 @@ async def tags_buttons(tags: list, can_go_back: bool) -> InlineKeyboardMarkup:
             )
         ])
         counter += 1
+    if need_another_button:
+        rows.append([
+            InlineKeyboardButton(
+                text='Что-то другое',
+                callback_data='another_idea'
+            )
+        ])
     if (can_go_back):
         rows.append(
             [go_back_in_tags_inline_button(), main_menu_inline_button()]
@@ -226,11 +287,24 @@ async def tags_buttons(tags: list, can_go_back: bool) -> InlineKeyboardMarkup:
 def search_by_tags_from_start_button() -> InlineKeyboardButton:
     return InlineKeyboardButton(
         text='Посмотреть другие идеи',
-        callback_data='ideas_start'
+        callback_data='ideas_from_start'
     )
 
 
 async def ideas_final_buttons() -> InlineKeyboardMarkup:
-    rows = [[search_by_tags_from_start_button()], row_back_to_main_menu()]
+    rows = [
+        [search_by_tags_from_start_button()], 
+        row_back_to_main_menu()
+        ]
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+
+async def ideas_final_buttons_with_feedback() -> InlineKeyboardMarkup:
+    rows = [
+        feedback_buttons_row(), 
+        [search_by_tags_from_start_button()], 
+        row_back_to_main_menu()
+        ]
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
