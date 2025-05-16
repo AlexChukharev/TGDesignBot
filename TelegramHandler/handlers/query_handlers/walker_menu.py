@@ -233,7 +233,13 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
         can_go_back,
         type_file
     )
-    if parent_name == 'Шаблоны':
+
+    if parent_name == "root":
+        logger.info('trying get the root folders')
+        text = await error_text()
+        await error_final(callback_query, text)
+        return
+    elif parent_name == 'Шаблоны':
         text = await choose_template_text_root(type_file)
     else:
         text = await choose_template_text_inner(tree.get_parent(cur_node_name))
