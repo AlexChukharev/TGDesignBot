@@ -9,8 +9,14 @@ from pptxHandler.pptxHandler import (install_templates,
 def fill_database(yadisk_info: YaDiskInfo) -> None:
     # For each template insert into DB and install it in local directory.
     for template_info in yadisk_info.get_templates():
-        # Get uniq id, that was given by DB.
+        print('tmpl_info: ', template_info)
+        print(f"Inserting template: {template_info.name}")
+        print(f"path: {template_info.path}")
         template_id = insert_template(template_info)
+        print(f"Assigned template_id: {template_id}")
+
+        # Get uniq id, that was given by DB.
+        # template_id = insert_template(template_info)
         install_templates('./Data/Templates/', [template_info])
         # Get info about slides into current template and add insert them into DB.
         slide_info_list = get_slides_information('./Data/Templates/' + template_info.name)

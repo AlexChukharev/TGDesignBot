@@ -2,8 +2,10 @@ import asyncio
 import datetime
 import pickle
 
-from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from DBHandler.initialize_database import initialize_database
 from TelegramHandler import bot as TGbot
@@ -16,7 +18,7 @@ async def main():
     # Fill database + create tree with dir
     load_dotenv()
     tree = Tree()
-    update_tree(tree, datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    update_tree(tree, datetime.datetime.min.replace(tzinfo=datetime.timezone.utc), True)
     with open("./Tree/ObjectTree.pkl", "wb") as fp:
         pickle.dump(tree, fp)
     # Initialize DataBase.
@@ -26,6 +28,11 @@ async def main():
     # scheduler = BackgroundScheduler()
     # scheduler.add_job(update_tree_and_db, "interval", hours=12)
     # scheduler.start()
+
+    scheduler = AsyncIOScheduler()
+    # scheduler.add_job(update_tree_and_db, "interval", hours=12)
+    scheduler.add_job(update_tree_and_db, "interval", minutes=7)
+    scheduler.start()
 
     await TGbot.start_bot()
 

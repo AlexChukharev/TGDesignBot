@@ -76,7 +76,7 @@ async def load_tree() -> Tree:
 def get_disk_folder_name(query_type: str) -> str:
     """
         Получает название папки на Я. Диске, 
-        в которой содержатся материалы соответствующие типу запроса
+        в которой содержатся материалы, соответствующие типу запроса
     """
     if query_type in ['pres_templates', 'fonts']:
         return 'Шаблоны'
@@ -95,7 +95,7 @@ def get_disk_folder_name(query_type: str) -> str:
 @router.callback_query(F.data == "extra_assets")
 async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext) -> None:
     """
-        TODO описание
+        TODO описание 
     """
     tree = await load_tree()
     config = await load_config()
@@ -105,16 +105,23 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     await state.set_state(WalkerState.choose_button)
     type_file = await set_file_type(callback_query.data, state)
 
-    root_child_list = tree.get_children(tree.root.name)
+    root_child_list = tree.get_children(tree.root.path)
+    print('root_child_list:', [node.name for node in root_child_list])
     path = [callback_query.data]
 
     indx_child = 0
     for child in root_child_list:
-        if child == get_disk_folder_name(callback_query.data):
+        print(f'child: {child.name}')
+        if child.name == get_disk_folder_name(callback_query.data):
             break
         indx_child += 1
     path.append(root_child_list[indx_child])
-    child_list = tree.get_children(root_child_list[indx_child])
+    print(f'path: {path}')
+    print('name: ', root_child_list[indx_child].name)
+    print('path: ', root_child_list[indx_child].path)
+    print('children: ', root_child_list[indx_child].children)
+    child_list = tree.get_children(root_child_list[indx_child].path)
+    print('children: ', [node.name for node in child_list])
 
     indx_list_start = 0
     indx_list_end = indx_list_start + dist_indx
@@ -127,7 +134,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     await update_user_info(state, path, 0, indx_list_end, False, child_list)
 
     reply_markup = await choose_category_callback(
-        child_list[indx_list_start:indx_list_end],
+        [node.name for node in child_list[indx_list_start:indx_list_end]],
         can_go_left,
         can_go_right,
         False,
@@ -144,7 +151,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
 
 async def paginate_template_find(callback_query: CallbackQuery, state: FSMContext, direction: str):
     """
-        TODO описание
+        TODO описание 
     """
     config = await load_config()
     dist_indx = config['dist']
@@ -168,13 +175,13 @@ async def paginate_template_find(callback_query: CallbackQuery, state: FSMContex
     can_go_left = await check_left(indx_list_start)
 
     reply_markup = await choose_category_callback(
-        child_list[indx_list_start:indx_list_end],
+        [node.name for node in child_list[indx_list_start:indx_list_end]],
         can_go_left,
         can_go_right,
         can_go_back,
         type_file
     )
-    text = await choose_template_text_inner(path[-1])
+    text = await choose_template_text_inner(path[-1].name)
 
     await callback_query.message.edit_text(
         text=text,
@@ -219,15 +226,16 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     indx_list_end = indx_list_start + dist_indx
 
     cur_node_name = path.pop(-1)
-    parent_name = tree.get_parent(cur_node_name)
-    child_list = tree.get_children(parent_name)
+    parent_path = path[-1].path if path else '/' # '/' + '/'.join(path) if path else '/'
+    child_list = tree.get_children(parent_path)
+    parent_name = path[-1].name if path else ''
 
     can_go_back = await check_back(path)
     can_go_right = await check_right(indx_list_end, len(child_list))
     can_go_left = await check_left(indx_list_start)
 
     reply_markup = await choose_category_callback(
-        child_list[indx_list_start:indx_list_end],
+        [node.name for node in child_list[indx_list_start:indx_list_end]],
         can_go_left,
         can_go_right,
         can_go_back,
@@ -242,7 +250,7 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     elif parent_name == 'Шаблоны':
         text = await choose_template_text_root(type_file)
     else:
-        text = await choose_template_text_inner(tree.get_parent(cur_node_name))
+        text = await choose_template_text_inner(parent_name)
 
     await callback_query.message.edit_text(
         text=text,
@@ -428,7 +436,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     user_info = await state.get_data()
 
     path = user_info['path']
-    parent_name = path[-1]
+    parent_name = path[-1].name
 
     files_list = await get_list_of_files(state)
     type_file = user_info['type_file']
@@ -523,7 +531,7 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
                 )
         else:
             # отрезаем два символа – эмоджи и пробел
-            item_name = user_info['path'][-1][2:]
+            item_name = user_info['path'][-1].name[2:]
             await callback_query.message.edit_text(
                     text=f"Отправляю шрифты для <b>{item_name}</b>, секунду...",
                     parse_mode=ParseMode.HTML
@@ -564,7 +572,8 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
 
     indx_child = indx_list_start + int(callback_query.data) - 1
     path.append(child_list[indx_child])
-    child_list = tree.get_children(child_list[indx_child])
+    child_list = tree.get_children(child_list[indx_child].path)
+    print([node.name for node in child_list])
 
     indx_list_start = 0
     dist_indx = config['dist']
@@ -591,17 +600,17 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
             await finish_template_search(callback_query, state)
     else:
         # отдельно рассматривается случай со шрифтами – для них не хотим спускаться до уровня шаблонов — останавливаемся на уровне БЮ (4)
-        if type_file == 'font' and len(path) == 4:
+        if type_file == 'font' and len(path) == 4: # почему 4???
             await get_fonts_from_all_pres(callback_query, state)
         else:
             reply_markup = await choose_category_callback(
-                child_list[indx_list_start:indx_list_end],
+                [node.name for node in child_list[indx_list_start:indx_list_end]],
                 can_go_left,
                 can_go_right,
                 can_go_back,
                 type_file
             )
-            text = await choose_template_text_inner(path[-1])
+            text = await choose_template_text_inner(path[-1].name)
             await callback_query.message.edit_text(
                 text=text, 
                 parse_mode=ParseMode.HTML,

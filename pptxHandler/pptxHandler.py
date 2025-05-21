@@ -35,6 +35,7 @@ class SlideInfo:
 # Takes path to file in local directory and list of templates (pptx files).
 # Install them to a local directory.
 def install_templates(path: str, templates: list):
+    # сделать для одно темплейта, а не списка
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -42,13 +43,15 @@ def install_templates(path: str, templates: list):
         for template in templates:
             # if os.path.exists(path + template.name):
             #     continue
-            response = requests.get(ya_disk.get_download_link(template.path + '/' + template.name))
+            print('forresponse: ' + template.path)
+            response = requests.get(ya_disk.get_download_link(template.path))
+            print('response: ', response)
             with open(path + template.name, 'wb') as file:
                 file.write(response.content)
     except Exception as e:
         for template in templates:
             if os.path.exists(path + template.name):
-                os.remove(path + template.file)
+                os.remove(path + template.name)
         raise Exception("Can't install templates")
 
 

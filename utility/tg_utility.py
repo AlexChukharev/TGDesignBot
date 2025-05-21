@@ -51,19 +51,43 @@ async def update_indx(state: FSMContext, indx_list_start, indx_list_end) -> None
     await state.update_data(indx_list_end=indx_list_end)
 
 
+# async def get_list_of_files(state: FSMContext) -> list:
+#     user_info = await state.get_data()
+#     list_of_path = user_info['path']
+#     print(list_of_path)
+#     # Check type of search
+#     if list_of_path[0] == "Шаблон презентаций":
+#         path = '/'.join(list_of_path[1:])
+#         list_of_files = await get_templates_from_child_directories(path)
+#     elif list_of_path[0] == "Корпоративные шрифты":
+#         path = '/'.join(list_of_path[1:])
+#         list_of_files = await get_templates_from_child_directories(path)
+#     else:
+#         path = '/'.join(list_of_path[1:])
+#         list_of_files = await get_templates_from_child_directories(path)
+#     return list_of_files
+
 async def get_list_of_files(state: FSMContext) -> list:
     user_info = await state.get_data()
     list_of_path = user_info['path']
+    print(list_of_path)
     # Check type of search
-    if list_of_path[0] == "Шаблон презентаций":
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
-    elif list_of_path[0] == "Корпоративные шрифты":
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
-    else:
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
+    # if list_of_path[0] == "Шаблон презентаций":
+    #     path = list_of_path[-1].path
+    #     print(path)
+    #     list_of_files = await get_templates_from_child_directories(path)
+    # elif list_of_path[0] == "Корпоративные шрифты":
+    #     path = list_of_path[-1].path
+    #     print(path)
+    #     list_of_files = await get_templates_from_child_directories(path)
+    # else:
+    #     path = list_of_path[-1].path
+    #     print(path)
+    #     list_of_files = await get_templates_from_child_directories(path)
+    path = list_of_path[-1].path
+    print(path)
+    list_of_files = await get_templates_from_child_directories(path)
+    print(list_of_files)
     return list_of_files
 
 

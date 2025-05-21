@@ -18,6 +18,8 @@ load_dotenv()
 ya_disk = yadisk.YaDisk(token=str(os.getenv('YANDEX_DISK_TOKEN')))
 logger = logging.getLogger(__name__)
 
+with open("./CONFIG/config.json", "r") as jsonFile:
+    MODE = json.load(jsonFile)["test_mode"]
 
 # Takes item from YaDisk and checking is it a photo directory.
 def is_images(item) -> bool:
@@ -55,13 +57,13 @@ def __search_in_directory__(directory: str,
 
         elif last_updated_time < item.created:
             if is_images(item) or is_graphics(item):
-                ya_disk_info.add_image(item.path, item.path[: item.path.rfind('/')])
+                ya_disk_info.add_image(item.path, item.path)
 
             elif is_template(item):
-                ya_disk_info.add_template(item.name, item.path[: item.path.rfind('/')])
+                ya_disk_info.add_template(item.name, item.path)
 
             elif is_font(item):
-                ya_disk_info.add_font(item.path[: item.path.rfind('/')], item.name)
+                ya_disk_info.add_font(item.path, item.name)
 
 
 # Function take an empty lists ant trying to bring from YDisc all files created from last
@@ -89,6 +91,7 @@ def __get_templates_from_trash__(directory: str,
             __get_templates_from_trash__(item.path, ya_disk_info)
         elif is_template(item):
             path = directory.split('/')
+            # добавить проверку, что лежало в папке TelegramBot...
             path[1] = path[1][: path[1].rfind('_')]
             path = '/'.join(path[1:])
             ya_disk_info.add_template(item.name, path)
@@ -99,31 +102,33 @@ def __delete_nodes__(directory: str, tree: Tree):
     for item in ya_disk.trash_listdir(directory):
         if item.is_dir():
             __delete_nodes__(item.path, tree)
-            tree.delete_node(item.name)
+            tree.delete_node(item.path)
 
 
 # Adds information about new directories to the tree.
-def __add_nodes__(directory: str, last_updated_time, tree: Tree):
+def __add_nodes__(directory: str, last_updated_time, tree: Tree, load=False):
     for item in ya_disk.listdir(directory):
         if item.is_dir() and (not is_images(item)) and (not is_font(item)):
             if last_updated_time < item.created:
                 if (directory == "/TelegramBot/") or (directory == "/TelegramBotFastTest/"):
-                    tree.insert("root", item.name)
+                    tree.make_root(directory.strip('/'))
                 else:
-                    tree.insert(directory[directory.rfind('/') + 1:], item.name)
-            __add_nodes__(item.path, last_updated_time, tree)
+                    print('insert_path: ', '/'.join(directory.split('/')))
+                    tree.insert_node('/'.join(directory.split('/')), item.name, load)
+            print(item.path)
+            __add_nodes__('/'.join(item.path.split('/')[1:]), last_updated_time, tree, load)
 
 
 # Update actuality of the current tree object.
-def update_tree(tree: Tree, last_updated_time):
+def update_tree(tree: Tree, last_updated_time, load=False):
     check_token(ya_disk)
     __delete_nodes__('/', tree)
     with open("./CONFIG/config.json", "r") as jsonFile:
         data = json.load(jsonFile)
         if data["test_mode"]:
-            __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree)
+            __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree, load)
         else:
-            __add_nodes__('/TelegramBot/', last_updated_time, tree)
+            __add_nodes__('/TelegramBot/', last_updated_time, tree, load)
     with open("./Tree/ObjectTree.pkl", "wb") as fp:
         pickle.dump(tree, fp)
 
@@ -136,6 +141,8 @@ def update_tree(tree: Tree, last_updated_time):
 
     with open("./CONFIG/config.json", "w") as jsonFile:
         json.dump(data, jsonFile)
+
+    tree.log_tree()
 
 
 # This function returns all files from YDisk.
