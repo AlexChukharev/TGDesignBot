@@ -19,7 +19,7 @@ ya_disk = yadisk.YaDisk(token=str(os.getenv('YANDEX_DISK_TOKEN')))
 logger = logging.getLogger(__name__)
 
 with open("./CONFIG/config.json", "r") as jsonFile:
-    MODE = json.load(jsonFile)["test_mode"]
+    TEST_MODE = json.load(jsonFile)["test_mode"]
 
 # Takes item from YaDisk and checking is it a photo directory.
 def is_images(item) -> bool:
@@ -72,8 +72,7 @@ def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaD
     check_token(ya_disk)
     try:
         with open("./CONFIG/config.json", "r") as jsonFile:
-            data = json.load(jsonFile)
-            if data["test_mode"]:
+            if TEST_MODE:
                 __search_in_directory__('/TelegramBotFastTest/', last_updated_time, ya_disk_info)
             else:
                 __search_in_directory__('/TelegramBot/', last_updated_time, ya_disk_info)
@@ -113,9 +112,9 @@ def __add_nodes__(directory: str, last_updated_time, tree: Tree, load=False):
                 if (directory == "/TelegramBot/") or (directory == "/TelegramBotFastTest/"):
                     tree.make_root(directory.strip('/'))
                 else:
-                    print('insert_path: ', '/'.join(directory.split('/')))
+                    print('insert_path:', '/'.join(directory.split('/')))
                     tree.insert_node('/'.join(directory.split('/')), item.name, load)
-            print(item.path)
+            print('itempath:', item.path)
             __add_nodes__('/'.join(item.path.split('/')[1:]), last_updated_time, tree, load)
 
 
@@ -124,8 +123,7 @@ def update_tree(tree: Tree, last_updated_time, load=False):
     check_token(ya_disk)
     __delete_nodes__('/', tree)
     with open("./CONFIG/config.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-        if data["test_mode"]:
+        if TEST_MODE:
             __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree, load)
         else:
             __add_nodes__('/TelegramBot/', last_updated_time, tree, load)

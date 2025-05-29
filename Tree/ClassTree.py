@@ -112,11 +112,12 @@ class Tree:
     
 
     def log_tree(self, node=None, level=0):
+        logger = logging.getLogger(__name__)
+        
         if node is None:
+            logger.info(f"Logging tree:")
             node = self.root
         
-        logger = logging.getLogger(__name__)
-        logger.info(f"Logging tree:")
         logger.info("  " * level + f"Node: {node.name} (Path: {node.path})")
         
         for child in node.children:

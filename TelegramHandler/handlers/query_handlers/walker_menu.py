@@ -117,11 +117,11 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
         indx_child += 1
     path.append(root_child_list[indx_child])
     print(f'path: {path}')
-    print('name: ', root_child_list[indx_child].name)
-    print('path: ', root_child_list[indx_child].path)
-    print('children: ', root_child_list[indx_child].children)
+    print('name:', root_child_list[indx_child].name)
+    print('path:', root_child_list[indx_child].path)
+    print('children:', root_child_list[indx_child].children)
     child_list = tree.get_children(root_child_list[indx_child].path)
-    print('children: ', [node.name for node in child_list])
+    print('children:', [node.name for node in child_list])
 
     indx_list_start = 0
     indx_list_end = indx_list_start + dist_indx
@@ -241,13 +241,12 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
         can_go_back,
         type_file
     )
-
-    if parent_name == "root":
-        logger.info('trying get the root folders')
-        text = await error_text()
-        await error_final(callback_query, text)
-        return
-    elif parent_name == 'Шаблоны':
+    # if parent_name == "root":
+    #     logger.info('trying get the root folders')
+    #     text = await error_text()
+    #     await error_final(callback_query, text)
+    #     return
+    if parent_name == 'Шаблоны':
         text = await choose_template_text_root(type_file)
     else:
         text = await choose_template_text_inner(parent_name)
@@ -374,6 +373,7 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     slide_info.add_template_info(template_info)
     get_template_of_slides(path_to_save, slide_info)
     try:
+        print('trying to send file')
         await send_file_from_local_for_query(callback_query, path_to_save, f'{tag} ({template_name[:-5]}).pptx')
     except Exception as e:
         logger.info('Error while send_file_from_local_for_query in finish_tags_search')
@@ -436,23 +436,29 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     user_info = await state.get_data()
 
     path = user_info['path']
+    print('user_info[path]:', path)
     parent_name = path[-1].name
+    print('parent_name:', parent_name)
 
     files_list = await get_list_of_files(state)
+    print('files_list:', files_list)
     type_file = user_info['type_file']
     if not files_list:
         text = await error_text()
         await error_final(callback_query, text)
         return
     file_name = files_list[0][2]
+    print('file_name:', file_name)
     file_path = files_list[0][1]
+    print('file_path:', file_path)
     # TODO переводит состояние – переименовать
     await from_button_to_file(state, files_list, [file_name], WalkerState.choose_file, [file_path])
     await state.update_data(file_id=files_list[0][0])
 
     try:
-        link = get_download_link(str(file_path) + '/' + str(file_name))
-        file_size = get_file_size(str(file_path) + '/' + str(file_name))
+        link = get_download_link(str(file_path))# + '/' + str(file_name))
+        print('link:', link)
+        file_size = get_file_size(str(file_path))# + '/' + str(file_name))
     except Exception:
         reply_markup = await go_back_to_main_menu()
         template_info = TemplateInfo(str(file_name), str(file_path))
@@ -573,7 +579,7 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
     indx_child = indx_list_start + int(callback_query.data) - 1
     path.append(child_list[indx_child])
     child_list = tree.get_children(child_list[indx_child].path)
-    print([node.name for node in child_list])
+    print('child_list:', [node.name for node in child_list])
 
     indx_list_start = 0
     dist_indx = config['dist']
