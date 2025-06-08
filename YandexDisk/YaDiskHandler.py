@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 with open("./CONFIG/config.json", "r") as jsonFile:
     TEST_MODE = json.load(jsonFile)["test_mode"]
+ROOT = 'TelegramBotFastTest' if TEST_MODE else 'TelegramBot'
 
 # Takes item from YaDisk and checking is it a photo directory.
 def is_images(item) -> bool:
@@ -60,9 +61,11 @@ def __search_in_directory__(directory: str,
                 ya_disk_info.add_image(item.path, item.path)
 
             elif is_template(item):
+                print('is_template:', item.path)
                 ya_disk_info.add_template(item.name, item.path)
 
             elif is_font(item):
+                print('is_font:', item.path)
                 ya_disk_info.add_font(item.path, item.name)
 
 
@@ -99,9 +102,12 @@ def __get_templates_from_trash__(directory: str,
 # Removes outdated information from the folder tree.
 def __delete_nodes__(directory: str, tree: Tree):
     for item in ya_disk.trash_listdir(directory):
-        if item.is_dir():
-            __delete_nodes__(item.path, tree)
-            tree.delete_node(item.path)
+        print('name from trash:', item.name)
+        print('item', item)
+        # if item.is_dir():
+            # __delete_nodes__(item.origin_path, tree)
+        print('/'.join(item.origin_path.split('/')[1:]))
+        tree.delete_node('/'.join(item.origin_path.split('/')[1:]))
 
 
 # Adds information about new directories to the tree.
@@ -122,11 +128,16 @@ def __add_nodes__(directory: str, last_updated_time, tree: Tree, load=False):
 def update_tree(tree: Tree, last_updated_time, load=False):
     check_token(ya_disk)
     __delete_nodes__('/', tree)
+    # tree.delete_node(ROOT)
+    print('Empty tree:')
+    tree.log_tree(console=1)
     with open("./CONFIG/config.json", "r") as jsonFile:
         if TEST_MODE:
             __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree, load)
         else:
             __add_nodes__('/TelegramBot/', last_updated_time, tree, load)
+    print('Full tree:')
+    tree.log_tree(console=1)
     with open("./Tree/ObjectTree.pkl", "wb") as fp:
         pickle.dump(tree, fp)
 

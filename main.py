@@ -31,7 +31,7 @@ async def main():
 
     scheduler = AsyncIOScheduler()
     # scheduler.add_job(update_tree_and_db, "interval", hours=12)
-    scheduler.add_job(update_tree_and_db, "interval", minutes=7)
+    scheduler.add_job(update_tree_and_db, "interval", minutes=5)
     scheduler.start()
 
     await TGbot.start_bot()

@@ -225,10 +225,13 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     indx_list_start = 0
     indx_list_end = indx_list_start + dist_indx
 
-    cur_node_name = path.pop(-1)
-    parent_path = path[-1].path if path else '/' # '/' + '/'.join(path) if path else '/'
+    # cur_node_name = path.pop(-1)
+    parent_path = path[-2].path if path else '/' # '/' + '/'.join(path) if path else '/'
+    print('parent_path:', parent_path)
+    # path[-2] ???
     child_list = tree.get_children(parent_path)
-    parent_name = path[-1].name if path else ''
+    parent_name = path[-2].name if path else ''
+    print('parent_name:', parent_name)
 
     can_go_back = await check_back(path)
     can_go_right = await check_right(indx_list_end, len(child_list))
@@ -524,7 +527,8 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
     """
         
     user_info = await state.get_data()
-    path = '/'.join(user_info['path'][1:])
+    # path = '/'.join(user_info['path'][-1].split('/')[1:])
+    path = user_info['path'][-1].path
     
     # определяем сообщение и имя архива — отдельно обрабатываем корень
     item_name = ''
@@ -546,20 +550,21 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
         logger.info(e)
     try:
         zip_name = f'Шрифты {item_name}'
-        await start_send_fonts_for_query(callback_query, path, zip_name)
+        print('disk:/' + path)
+        await start_send_fonts_for_query(callback_query, 'disk:/' + path, zip_name)
+        try:
+            reply_markup = await how_to_install_fonts_buttons()
+            await try_to_delete_message(callback_query)
+            await callback_query.bot.send_message(
+                chat_id=callback_query.message.chat.id,
+                text='Готово!',
+                reply_markup=reply_markup
+            )
+        except Exception as e:
+            logger.info(e)
     except Exception as e:
         logger.info(e)
         return
-    try:
-        reply_markup = await how_to_install_fonts_buttons()
-        await try_to_delete_message(callback_query)
-        await callback_query.bot.send_message(
-            chat_id=callback_query.message.chat.id,
-            text='Готово!',
-            reply_markup=reply_markup
-        )
-    except Exception as e:
-        logger.info(e)
 
 
 @router.callback_query(WalkerState.choose_button, F.data.isnumeric())

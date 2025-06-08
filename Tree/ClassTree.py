@@ -111,17 +111,27 @@ class Tree:
         return current
     
 
-    def log_tree(self, node=None, level=0):
-        logger = logging.getLogger(__name__)
-        
-        if node is None:
-            logger.info(f"Logging tree:")
-            node = self.root
-        
-        logger.info("  " * level + f"Node: {node.name} (Path: {node.path})")
-        
-        for child in node.children:
-            self.log_tree(child, level + 1)
+    def log_tree(self, node=None, level=0, console=0):
+        if console == 0:
+            logger = logging.getLogger(__name__)
+            
+            if node is None:
+                logger.info("Logging tree:")
+                node = self.root
+            
+            logger.info("  " * level + f"Node: {node.name} (Path: {node.path})")
+            
+            for child in node.children:
+                self.log_tree(child, level + 1, console)
+        else:
+            if node is None:
+                print("Logging tree:")
+                node = self.root
+            
+            print("  " * level + f"Node: {node.name} (Path: {node.path})")
+            
+            for child in node.children:
+                self.log_tree(child, level + 1, console)
 
     # def log_tree(self, node=None, level=0, logger=None):
     #     if logger is None:

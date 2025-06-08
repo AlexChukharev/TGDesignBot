@@ -390,7 +390,7 @@ def no_access_text() -> str:
     """
         Текст для пользователя, если у него нет доступа
     """
-    return 'Нет доступа, проверь привзан ли телеграм к стаффу'
+    return 'Нет доступа, проверь привязан ли телеграм к стаффу'
 
 
 async def error_no_access(callback_query: CallbackQuery):
