@@ -11,14 +11,15 @@ from DBHandler.initialize_database import initialize_database
 from TelegramHandler import bot as TGbot
 from Tree.ClassTree import Tree
 from YandexDisk.UpdateDisk import update_tree_and_db
-from YandexDisk.YaDiskHandler import update_tree
+from YandexDisk.YaDiskHandler import update_tree, create_tree
 
 
 async def main():
     # Fill database + create tree with dir
     load_dotenv()
-    tree = Tree()
-    update_tree(tree, datetime.datetime.min.replace(tzinfo=datetime.timezone.utc), True)
+    tree = create_tree()
+    # update_tree(tree, datetime.datetime.min.replace(tzinfo=datetime.timezone.utc), True)
+    
     with open("./Tree/ObjectTree.pkl", "wb") as fp:
         pickle.dump(tree, fp)
     # Initialize DataBase.

@@ -226,7 +226,7 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     indx_list_end = indx_list_start + dist_indx
 
     # cur_node_name = path.pop(-1)
-    parent_path = path[-2].path if path else '/' # '/' + '/'.join(path) if path else '/'
+    parent_path = path[-2].path #if path else '/' # '/' + '/'.join(path) if path else '/'
     print('parent_path:', parent_path)
     # path[-2] ???
     child_list = tree.get_children(parent_path)

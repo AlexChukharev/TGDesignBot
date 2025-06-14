@@ -2,7 +2,8 @@ import logging
 
 # Inner class Node. Has 4 fields: name, parent, an array of children and full path.
 class Node:
-    def __init__(self, name: str, parent=None):
+    def __init__(self, resource_id: str, name: str, parent=None):
+        self.resource_id = resource_id
         self.name = name
         self.parent = parent
         self.children = []
@@ -11,6 +12,13 @@ class Node:
             self.path = self.name
         else:
             self.path = parent.path + '/' + self.name
+            print('parent_path:', self.parent.path)
+
+        print('node_name:', self.name)
+        print('node_path:', self.path)
+        
+
+    # СДЕЛАТЬ КОРЕНЬ /TelegramBot
 
 # with open("./CONFIG/config.json", "r") as jsonFile:
 #             data = json.load(jsonFile)
@@ -21,18 +29,20 @@ class Node:
 
 class Tree:
     def __init__(self):
-        self.root = Node('')
+        self.root = Node('', '')
 
-    def make_root(self, name: str):
-        self.root.name = name
-        self.root.path = name
+    def make_root(self, resource_id: str, name: str):
+        self.root = Node(resource_id, name)
+        print('root:', self.root.name, self.root.path)
 
     # Insert new node to tree. Takes the name of parent node and value - name of child.
-    def insert_node(self, parent: str, name: str, load=False):
-        node = self.__find_by_path__(parent, load)
+    def insert_node(self, parent: str, resource_id: str, name: str):
+        node = self.__find_by_path__(parent)#, resource_id, load) # надо сверять везде id???
+        print('parent_path:', parent)
+        print('name', name)
         if node is None:
             raise Exception("Target node does not exist")
-        node.children.append(Node(name, parent=node))
+        node.children.append(Node(resource_id, name, parent=node))
 
     # Delete the node and it's children by name.
     def delete_node(self, path: str):
@@ -85,29 +95,35 @@ class Tree:
     #         else:
     #             self.__get_parent__(children, target, lst)
 
-    def __find_by_path__(self, target_path: str, load=False) -> Node | None:
+    # def __find_by_path__(self, target_path: str, resource_id=None, load=False) -> Node | None:
+    def __find_by_path__(self, target_path: str) -> Node | None:
+
+        print('compare:', self.root.path, target_path)
+
         if target_path == self.root.path:
+            print('found root:', self.root.name, self.root.path)
             return self.root
 
         current = self.root
         parts = target_path.strip('/').split('/')
         print('parts:', parts)
-        for part in parts[1:]:
+        for part in parts[2:]:
             found = None
             for child in current.children:
                 if child.name == part:
                     found = child
                     break
             if not found:
-                if load:
-                    found = Node(part, parent=current)
-                    current.children.append(found)
-                    # return None
-                    # TODO сделать дублирование функций Или флаг для загрузки дерева и для обновления
-                else:
-                    return None
+                # if load:
+                #     found = Node(resource_id, part, parent=current)
+                #     current.children.append(found)
+                #     # return None
+                #     # TODO сделать дублирование функций Или флаг для загрузки дерева и для обновления
+                # else:
+                return None
             current = found
 
+        print('found node:', current.name, current.path)
         return current
     
 

@@ -53,25 +53,27 @@ def __search_in_directory__(directory: str,
                             last_updated_time: datetime.datetime,
                             ya_disk_info: YaDiskInfo):
     for item in ya_disk.listdir(directory):
-        if item.is_dir() and (not is_images(item)) and (not is_graphics(item)):
+        if item.is_dir():
             __search_in_directory__(item.path, last_updated_time, ya_disk_info)
 
-        elif last_updated_time < item.created:
+        elif last_updated_time < item.modified: # item.created на случай переименования папки или файла
             if is_images(item) or is_graphics(item):
-                ya_disk_info.add_image(item.path, item.path)
+                ya_disk_info.add_image(item.path, item.path, item.resource_id)
 
             elif is_template(item):
                 print('is_template:', item.path)
-                ya_disk_info.add_template(item.name, item.path)
+                ya_disk_info.add_template(item.name, item.path, item.resource_id)
 
             elif is_font(item):
                 print('is_font:', item.path)
-                ya_disk_info.add_font(item.path, item.name)
+                ya_disk_info.add_font(item.path, item.name, item.resource_id)
 
 
 # Function take an empty lists ant trying to bring from YDisc all files created from last
 # checking. Using ISO 8601 format of time with milliseconds.
 def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaDiskInfo):
+    # сделать аргумент в какой папке искать
+    # время может быть не нужно
     check_token(ya_disk)
     try:
         with open("./CONFIG/config.json", "r") as jsonFile:
@@ -111,31 +113,35 @@ def __delete_nodes__(directory: str, tree: Tree):
 
 
 # Adds information about new directories to the tree.
-def __add_nodes__(directory: str, last_updated_time, tree: Tree, load=False):
+def __add_nodes__(directory: str, last_updated_time: datetime.datetime | None, tree: Tree):
+    print('listdir:', ya_disk.listdir(directory))
     for item in ya_disk.listdir(directory):
         if item.is_dir() and (not is_images(item)) and (not is_font(item)):
-            if last_updated_time < item.created:
-                if (directory == "/TelegramBot/") or (directory == "/TelegramBotFastTest/"):
-                    tree.make_root(directory.strip('/'))
-                else:
-                    print('insert_path:', '/'.join(directory.split('/')))
-                    tree.insert_node('/'.join(directory.split('/')), item.name, load)
+            # идти параллельно по дереву диска и локальному, чтобы обработать восстановление файлов ИЛИ ЗАБИТЬ
+            if True: #last_updated_time < item.created:
+                # if (directory == "disk:/TelegramBotFastTest") or (directory == "disk:/TelegramBot"):
+                    # tree.make_root(item.resource_id, directory)
+                # else:
+                tree.insert_node(directory, item.resource_id, item.name)
+            elif last_updated_time < item.modified:
+
+                pass # сделать случай переименования по resource_id
+            # перетаскивание пока непонятно
             print('itempath:', item.path)
-            __add_nodes__('/'.join(item.path.split('/')[1:]), last_updated_time, tree, load)
+            __add_nodes__(item.path, last_updated_time, tree)
 
 
 # Update actuality of the current tree object.
 def update_tree(tree: Tree, last_updated_time, load=False):
     check_token(ya_disk)
-    __delete_nodes__('/', tree)
+    # __delete_nodes__('/', tree)
     # tree.delete_node(ROOT)
-    print('Empty tree:')
+    # print('Empty tree:')
     tree.log_tree(console=1)
-    with open("./CONFIG/config.json", "r") as jsonFile:
-        if TEST_MODE:
-            __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree, load)
-        else:
-            __add_nodes__('/TelegramBot/', last_updated_time, tree, load)
+    if TEST_MODE:
+        __add_nodes__('disk:/TelegramBotFastTest', last_updated_time, tree)
+    else:
+        __add_nodes__('disk:/TelegramBot', last_updated_time, tree)
     print('Full tree:')
     tree.log_tree(console=1)
     with open("./Tree/ObjectTree.pkl", "wb") as fp:
@@ -153,6 +159,24 @@ def update_tree(tree: Tree, last_updated_time, load=False):
 
     tree.log_tree()
 
+def create_tree(load=True):
+    check_token(ya_disk)
+    tree = Tree()
+    # __delete_nodes__('/', tree)
+    # # tree.delete_node(ROOT)
+    # print('Empty tree:')
+    # tree.log_tree(console=1)
+    if TEST_MODE:
+        tree.make_root('', 'disk:/TelegramBotFastTest')
+        __add_nodes__('disk:/TelegramBotFastTest', None, tree)
+    else:
+        tree.make_root('', 'disk:/TelegramBot')
+        __add_nodes__('disk:/TelegramBot', None, tree)
+    print('Full tree:')
+    tree.log_tree(console=1)
+    tree.log_tree()
+    return tree
+
 
 # This function returns all files from YDisk.
 # Returns an object of class YaDiskInfo.
@@ -164,6 +188,7 @@ def get_all_files_in_disk() -> YaDiskInfo:
 
 
 # Upload a local file to YaDisk by dest_path.
+# переделать
 def upload_to_disk(dest_path: list, local_path: str):
     check_token(ya_disk)
     path_to_files = list(ya_disk.listdir('/'))[0].path

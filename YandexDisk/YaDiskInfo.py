@@ -1,17 +1,20 @@
 class TemplateInfo:
-    def __init__(self, name: str, path: str):
+    def __init__(self, name: str, path: str, resource_id: str):
+        self.resource_id = resource_id
         self.name = name
         self.path = path
 
 
 class FontInfo:
-    def __init__(self, path: str, name: str):
+    def __init__(self, path: str, name: str, resource_id: str):
+        self.resource_id = resource_id
         self.path = path
         self.name = name
 
 
 class ImageInfo:
-    def __init__(self, position: str, path: str):
+    def __init__(self, position: str, path: str, resource_id: str):
+        self.resource_id = resource_id
         self.position = position
         self.path = path
 
@@ -22,14 +25,14 @@ class YaDiskInfo:
         self.fonts = []
         self.images = []
 
-    def add_template(self, name: str, path: str):
-        self.templates.append(TemplateInfo(name, path))
+    def add_template(self, name: str, path: str, resource_id: str):
+        self.templates.append(TemplateInfo(name, path, resource_id))
 
-    def add_font(self, path: str, name: str):
-        self.fonts.append(FontInfo(path, name))
+    def add_font(self, path: str, name: str, resource_id: str):
+        self.fonts.append(FontInfo(path, name, resource_id))
 
-    def add_image(self, position: str, path: str):
-        self.images.append(ImageInfo(position, path))
+    def add_image(self, position: str, path: str, resource_id: str):
+        self.images.append(ImageInfo(position, path, resource_id))
 
     def get_templates(self) -> list:
         return self.templates
