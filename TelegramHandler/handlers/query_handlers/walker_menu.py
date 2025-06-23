@@ -372,7 +372,8 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
         slide_info.add_id(slide[0])
     get_template = get_templates_by_index(template_id)
     template = get_template[0]
-    template_info = TemplateInfo(template[2], template[1])
+    print('template:', template)
+    template_info = TemplateInfo(template[2], template[1], template[0])
     slide_info.add_template_info(template_info)
     get_template_of_slides(path_to_save, slide_info)
     try:
@@ -439,6 +440,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     user_info = await state.get_data()
 
     path = user_info['path']
+    resource_id = user_info.get('resource_id')
     print('user_info[path]:', path)
     parent_name = path[-1].name
     print('parent_name:', parent_name)
@@ -459,12 +461,12 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     await state.update_data(file_id=files_list[0][0])
 
     try:
-        link = get_download_link(str(file_path))# + '/' + str(file_name))
+        link = get_download_link(str(file_path) + '/' + str(file_name))
         print('link:', link)
-        file_size = get_file_size(str(file_path))# + '/' + str(file_name))
+        file_size = get_file_size(str(file_path) + '/' + str(file_name))
     except Exception:
         reply_markup = await go_back_to_main_menu()
-        template_info = TemplateInfo(str(file_name), str(file_path))
+        template_info = TemplateInfo(str(file_name), str(file_path), str(resource_id))
         template_id = get_template_id_by_name(template_info.path, template_info.name)
         delete_template(template_id)
         await try_to_delete_message(callback_query)
@@ -550,8 +552,8 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
         logger.info(e)
     try:
         zip_name = f'Шрифты {item_name}'
-        print('disk:/' + path)
-        await start_send_fonts_for_query(callback_query, 'disk:/' + path, zip_name)
+        print(path)
+        await start_send_fonts_for_query(callback_query, path, zip_name)
         try:
             reply_markup = await how_to_install_fonts_buttons()
             await try_to_delete_message(callback_query)

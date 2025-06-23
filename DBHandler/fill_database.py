@@ -17,7 +17,8 @@ def fill_database(yadisk_info: YaDiskInfo) -> None:
 
         # Get uniq id, that was given by DB.
         # template_id = insert_template(template_info)
-        install_template('./Data/Templates/', template_info)
+        if 'Advanced' in template_info.path:
+            install_template('./Data/Templates/', template_info)
         # Get info about slides into current template and add insert them into DB.
         slide_info_list = get_slides_information('./Data/Templates/' + template_info.name)
         insert_many_slides(template_id, slide_info_list)

@@ -18,4 +18,4 @@ def initialize_database() -> None:
 
     if len(admins) != 0:
         insert_many_users(admins)
-    fill_database(get_all_files_in_disk())
+    # fill_database(get_all_files_in_disk())

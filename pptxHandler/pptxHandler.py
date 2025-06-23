@@ -42,8 +42,8 @@ def install_template(path: str, template: TemplateInfo):
     try:
             # if os.path.exists(path + template.name):
             #     continue
-        print('forresponse: ' + template.path)
-        response = requests.get(ya_disk.get_download_link(template.path))
+        print('forresponse: ' + template.path + '/' + template.name)
+        response = requests.get(ya_disk.get_download_link(template.path + '/' + template.name))
         print('response: ', response)
         with open(path + template.name, 'wb') as file:
             file.write(response.content)

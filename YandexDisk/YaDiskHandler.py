@@ -18,9 +18,9 @@ load_dotenv()
 ya_disk = yadisk.YaDisk(token=str(os.getenv('YANDEX_DISK_TOKEN')))
 logger = logging.getLogger(__name__)
 
-with open("./CONFIG/config.json", "r") as jsonFile:
-    TEST_MODE = json.load(jsonFile)["test_mode"]
-ROOT = 'TelegramBotFastTest' if TEST_MODE else 'TelegramBot'
+# with open("./CONFIG/config.json", "r") as jsonFile:
+TEST_MODE = json.load(open("./CONFIG/config.json"))["test_mode"]
+ROOT = 'disk:/TelegramBotFastTest' if TEST_MODE else 'disk:/TelegramBot'
 
 # Takes item from YaDisk and checking is it a photo directory.
 def is_images(item) -> bool:
@@ -56,31 +56,34 @@ def __search_in_directory__(directory: str,
         if item.is_dir():
             __search_in_directory__(item.path, last_updated_time, ya_disk_info)
 
-        elif last_updated_time < item.modified: # item.created на случай переименования папки или файла
+        # elif last_updated_time < item.modified: # item.created на случай переименования папки или файла
+        else:
+            path = '/'.join(item.path.split('/')[:-1])
             if is_images(item) or is_graphics(item):
-                ya_disk_info.add_image(item.path, item.path, item.resource_id)
+                ya_disk_info.add_image(item.path, path, item.resource_id)
 
             elif is_template(item):
                 print('is_template:', item.path)
-                ya_disk_info.add_template(item.name, item.path, item.resource_id)
+                ya_disk_info.add_template(item.name, path, item.resource_id)
 
             elif is_font(item):
                 print('is_font:', item.path)
-                ya_disk_info.add_font(item.path, item.name, item.resource_id)
+                ya_disk_info.add_font(path, item.name, item.resource_id)
 
 
 # Function take an empty lists ant trying to bring from YDisc all files created from last
 # checking. Using ISO 8601 format of time with milliseconds.
-def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaDiskInfo):
+def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaDiskInfo, directory_path=None):
     # сделать аргумент в какой папке искать
     # время может быть не нужно
     check_token(ya_disk)
+    if directory_path is None:
+        if TEST_MODE:
+            directory_path = 'disk:/TelegramBotFastTest/'
+        else:
+            directory_path = 'disk:/TelegramBot/'
     try:
-        with open("./CONFIG/config.json", "r") as jsonFile:
-            if TEST_MODE:
-                __search_in_directory__('/TelegramBotFastTest/', last_updated_time, ya_disk_info)
-            else:
-                __search_in_directory__('/TelegramBot/', last_updated_time, ya_disk_info)
+        __search_in_directory__(directory_path, last_updated_time, ya_disk_info)
     except Exception as e:
         ya_disk_info.clear()
         raise Exception("Can't find any files")
@@ -113,7 +116,7 @@ def __delete_nodes__(directory: str, tree: Tree):
 
 
 # Adds information about new directories to the tree.
-def __add_nodes__(directory: str, last_updated_time: datetime.datetime | None, tree: Tree):
+def __add_nodes__(directory: str, tree: Tree):
     print('listdir:', ya_disk.listdir(directory))
     for item in ya_disk.listdir(directory):
         if item.is_dir() and (not is_images(item)) and (not is_font(item)):
@@ -123,43 +126,43 @@ def __add_nodes__(directory: str, last_updated_time: datetime.datetime | None, t
                     # tree.make_root(item.resource_id, directory)
                 # else:
                 tree.insert_node(directory, item.resource_id, item.name)
-            elif last_updated_time < item.modified:
+            # elif last_updated_time < item.modified:
 
-                pass # сделать случай переименования по resource_id
+                # pass # сделать случай переименования по resource_id
             # перетаскивание пока непонятно
             print('itempath:', item.path)
-            __add_nodes__(item.path, last_updated_time, tree)
+            __add_nodes__(item.path, tree)
 
 
-# Update actuality of the current tree object.
-def update_tree(tree: Tree, last_updated_time, load=False):
-    check_token(ya_disk)
-    # __delete_nodes__('/', tree)
-    # tree.delete_node(ROOT)
-    # print('Empty tree:')
-    tree.log_tree(console=1)
-    if TEST_MODE:
-        __add_nodes__('disk:/TelegramBotFastTest', last_updated_time, tree)
-    else:
-        __add_nodes__('disk:/TelegramBot', last_updated_time, tree)
-    print('Full tree:')
-    tree.log_tree(console=1)
-    with open("./Tree/ObjectTree.pkl", "wb") as fp:
-        pickle.dump(tree, fp)
+# # Update actuality of the current tree object.
+# def update_tree(tree: Tree, last_updated_time):
+#     check_token(ya_disk)
+#     # __delete_nodes__('/', tree)
+#     # tree.delete_node(ROOT)
+#     # print('Empty tree:')
+#     tree.log_tree(console=1)
+#     if TEST_MODE:
+#         __add_nodes__('disk:/TelegramBotFastTest', last_updated_time, tree)
+#     else:
+#         __add_nodes__('disk:/TelegramBot', last_updated_time, tree)
+#     print('Full tree:')
+#     tree.log_tree(console=1)
+#     with open("./Tree/ObjectTree.pkl", "wb") as fp:
+#         pickle.dump(tree, fp)
 
-    # Updating last_updated_time in json.
-    last_updated_time = datetime.datetime.now(tz=datetime.timezone.utc)
-    with open("./CONFIG/config.json", "r") as jsonFile:
-        data = json.load(jsonFile)
+#     # Updating last_updated_time in json.
+#     last_updated_time = datetime.datetime.now(tz=datetime.timezone.utc)
+#     with open("./CONFIG/config.json", "r") as jsonFile:
+#         data = json.load(jsonFile)
 
-    data["last-update-time"] = last_updated_time.isoformat()
+#     data["last-update-time"] = last_updated_time.isoformat()
 
-    with open("./CONFIG/config.json", "w") as jsonFile:
-        json.dump(data, jsonFile)
+#     with open("./CONFIG/config.json", "w") as jsonFile:
+#         json.dump(data, jsonFile)
 
-    tree.log_tree()
+#     tree.log_tree()
 
-def create_tree(load=True):
+def create_tree():
     check_token(ya_disk)
     tree = Tree()
     # __delete_nodes__('/', tree)
@@ -168,10 +171,10 @@ def create_tree(load=True):
     # tree.log_tree(console=1)
     if TEST_MODE:
         tree.make_root('', 'disk:/TelegramBotFastTest')
-        __add_nodes__('disk:/TelegramBotFastTest', None, tree)
+        __add_nodes__('disk:/TelegramBotFastTest', tree)
     else:
         tree.make_root('', 'disk:/TelegramBot')
-        __add_nodes__('disk:/TelegramBot', None, tree)
+        __add_nodes__('disk:/TelegramBot', tree)
     print('Full tree:')
     tree.log_tree(console=1)
     tree.log_tree()

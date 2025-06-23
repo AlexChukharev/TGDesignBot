@@ -191,6 +191,7 @@ async def send_big_file(message: types.Message, link, file_name):
 
 
 async def send_big_file_query(callback_query: CallbackQuery, link, file_name):
+    # надо сразу в тг через ссылку
     file = io.BytesIO()
     url = link
     async with aiohttp.ClientSession() as session:

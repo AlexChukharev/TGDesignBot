@@ -49,7 +49,7 @@ class Tree:
         node = self.__find_by_path__(path)
         if node is None or node.parent is None:
             return
-        for child in list(node.children):
+        for child in node.children:
             self.delete_node(child.path)
         node.children.clear()
         node.parent.children.remove(node)
@@ -98,7 +98,7 @@ class Tree:
     # def __find_by_path__(self, target_path: str, resource_id=None, load=False) -> Node | None:
     def __find_by_path__(self, target_path: str) -> Node | None:
 
-        print('compare:', self.root.path, target_path)
+        # print('compare:', self.root.path, target_path)
 
         if target_path == self.root.path:
             print('found root:', self.root.name, self.root.path)
