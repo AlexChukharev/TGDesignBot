@@ -242,7 +242,7 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name
                 urllib.request.urlretrieve(link, user_zip_path + f'/{counter}_{file[3]}')
                 counter += 1
             except Exception as e:
-                logger.info('error while reading url')
+                logger.info('Error while reading url')
                 logger.info(e)
         merge_fonts(user_zip_path, path_to_zip, zip_name)
         await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name}.zip')
@@ -258,6 +258,7 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name
     os.remove(path_to_zip)
 
 
+
 async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_name: str):
     """
         Скачивает все шрифты в директории YDPath на Яндекс Диске
@@ -269,7 +270,7 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_
 
     # отдельно обрабатываем кейс, если не нашли шрифты
     if len(list_fonts) == 0:
-        logger.info('expected fonts not found')
+        logger.info('Expected fonts not found')
         reply_markup = await go_back_to_main_menu()
         await callback_query.message.edit_text(
             text='По данному запросу не найдено ни одного шрифта!',
@@ -283,7 +284,7 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_
             action=ChatAction.UPLOAD_DOCUMENT,
         )
     except Exception as e:
-        logger.info('cannot set UPLOAD_DOCUMENT telegram action')
+        logger.info('Cannot set UPLOAD_DOCUMENT telegram action')
         logger.info(e)
     try:
         async with ChatActionSender.upload_document(
@@ -337,7 +338,7 @@ async def try_to_delete_message(callback_query: CallbackQuery):
     try:
         await callback_query.message.delete()
     except Exception as e:
-        logger.info('tryng to delete old message (after 48 hours)')
+        logger.info('Tryng to delete old message (after 48 hours)')
         logger.info(e)
 
 
@@ -366,7 +367,7 @@ def no_access_text() -> str:
     """
         Текст для пользователя, если у него нет доступа
     """
-    return 'Нет доступа, проверь привзан ли телеграм к стаффу'
+    return 'Привет! Я бот команды визуальных коммуникаций Яндекса\nК сожалению, у тебя нет доступа :(\n\n Если ты тоже из Яндекса, проверь привязан ли телеграм к стаффу'
 
 
 async def error_no_access(callback_query: CallbackQuery):
