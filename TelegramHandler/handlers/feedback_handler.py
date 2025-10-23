@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
 from TelegramHandler.keyboards.buttons import get_fonts_buttons, go_back_to_main_menu, ideas_final_buttons
+from utility.logging_actions import log_action_with_username
 from utility.tg_utility import error_final, error_text, get_list_of_files, try_to_delete_message
 
 
@@ -34,12 +35,12 @@ def thanks_for_feedback_text(type_file: str, score: str) -> str:
 
 
 @router.callback_query(F.data == "feedback_great")
-@router.callback_query(F.data == "feedback_good")
 @router.callback_query(F.data == "feedback_bad")
 async def prev_template_find(callback_query: CallbackQuery, state: FSMContext):
     """
         Processes feedback buttons and saves to feedback.csv
     """
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
     files_list = await get_list_of_files(state)
     user_info = await state.get_data()
@@ -80,9 +81,6 @@ async def prev_template_find(callback_query: CallbackQuery, state: FSMContext):
             text=reply_text,
             reply_markup=reply_markup
         )
-
-    with open("feedback.csv", "a") as file:
-        file.write(feedback_text + "\n")
     logger.info(feedback_text)
 
 
@@ -91,6 +89,7 @@ async def prev_template_find(callback_query: CallbackQuery, state: FSMContext):
     """
         Processes freshness feedback button. Used for Logo files
     """
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
     
     reply_markup = await go_back_to_main_menu()
     reply_text = f"Обязательно напиши об этом {json.load(open('./CONFIG/config.json'))['owner']}!"

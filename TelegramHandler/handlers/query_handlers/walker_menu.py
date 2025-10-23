@@ -9,6 +9,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
 from utility.checkers import file_size_in_limit
+from utility.logging_actions import log_action_with_username, log_sending
 from utility.tg_utility import (
     from_button_to_file, change_state_to_tags,
     set_file_type,
@@ -97,6 +98,9 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     """
         TODO описание
     """
+
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
     tree = await load_tree()
     config = await load_config()
     dist_indx = config['dist']
@@ -134,6 +138,9 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
         type_file
     )
     text = await choose_template_text_root(type_file)
+    if type_file == 'about_company':
+        await finish_template_search(callback_query, state)
+        return
 
     await callback_query.message.edit_text(
         text=text,
@@ -190,6 +197,7 @@ async def next_template_find(callback_query: CallbackQuery, state: FSMContext):
     """
         Processes 'next block of directories' action
     """
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
     await paginate_template_find(callback_query, state, "next")
 
 
@@ -198,6 +206,7 @@ async def prev_template_find(callback_query: CallbackQuery, state: FSMContext):
     """
         Processes 'prev block of directories' action
     """
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
     await paginate_template_find(callback_query, state, "prev")
 
 
@@ -206,6 +215,8 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     """
         Processes 'prev directory' action
     """
+
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
     tree = await load_tree()
     config = await load_config()
@@ -235,7 +246,7 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     )
 
     if parent_name == "root":
-        logger.info('trying get the root folders')
+        logger.info('Trying get the root folders')
         text = await error_text()
         await error_final(callback_query, text)
         return
@@ -257,6 +268,9 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
     """
         TODO описание
     """
+
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
     state_info = await state.get_data()
     # tags_on_prev_step_dict = state_info['tags']
     # reply_markup = await tags_buttons(tags_on_prev_step_dict['sub_categories'], ('parent' in tags_on_prev_step_dict), False)  
@@ -278,12 +292,14 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
         TODO описание
     """
 
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
     reply_text = f'Что хочешь нарисовать?'
     try:
         with open("./CONFIG/tags_tree.json", "r") as tags_file:
             tags = json.load(tags_file)
     except Exception as e:
-        logger.info('error while reading tags_tree.json')
+        logger.info('Error while reading tags_tree.json')
         logger.info(e)
         text = await error_text()
         await error_final(callback_query, text)
@@ -312,7 +328,7 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
         with open("./CONFIG/tags_tree.json", "r") as tags_file:
             tags = json.load(tags_file)
     except Exception as e:
-        logger.info('error while reading tags_tree.json')
+        logger.info('Error while reading tags_tree.json')
         logger.info(e)
         text = await error_text()
         await error_final(callback_query, text)
@@ -366,7 +382,9 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     slide_info.add_template_info(template_info)
     get_template_of_slides(path_to_save, slide_info)
     try:
-        await send_file_from_local_for_query(callback_query, path_to_save, f'{tag} ({template_name[:-5]}).pptx')
+        file_name_to_send = f'{tag} ({template_name[:-5]}).pptx';
+        log_sending(logger, file_name_to_send)
+        await send_file_from_local_for_query(callback_query, path_to_save, file_name_to_send)
     except Exception as e:
         logger.info('Error while send_file_from_local_for_query in finish_tags_search')
         logger.info(e)
@@ -386,6 +404,8 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
     """
         TODO описание
     """
+
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
     state_info = await state.get_data()
     tags_on_prev_step_dict = state_info['tags']
@@ -415,7 +435,7 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
             await finish_tags_search(callback_query, state, cur_tag['tag'])
         else:
             # такого вообще не должно быть
-            logger.info('error in tags_search while getting tag')
+            logger.info('ATTENTION: Error in tags_search while getting tag')
             text = await error_text()
             await error_final(callback_query, text)
 
@@ -465,6 +485,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
             text=f'Супер, отправляю! Это займет немного времени'
         )
         try:
+            log_sending(logger, str(file_path) + '/' + str(file_name))
             await download_with_link_query(callback_query, link, file_name)
             if type_file == "extra_assets":
                 if "Логотипы" in parent_name:
@@ -508,7 +529,9 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
     """
         Обработка конпки "скачать сразу все шрифты"
     """
-        
+
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
     user_info = await state.get_data()
     path = '/'.join(user_info['path'][1:])
     
@@ -532,6 +555,7 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
         logger.info(e)
     try:
         zip_name = f'Шрифты {item_name}'
+        log_sending(logger, "Fonts " + zip_name)
         await start_send_fonts_for_query(callback_query, path, zip_name)
     except Exception as e:
         logger.info(e)
@@ -553,6 +577,9 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
     """
         Имитация хождения по директориям при поиске материалов
     """
+
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
     tree = await load_tree()
     config = await load_config()
 

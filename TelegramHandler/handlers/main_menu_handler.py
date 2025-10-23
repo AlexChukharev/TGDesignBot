@@ -9,6 +9,7 @@ from aiogram.types.input_file import FSInputFile
 from aiogram.enums import ParseMode
 
 from utility.checkers import is_user
+from utility.logging_actions import log_action_with_username, log_unauthorized
 from utility.tg_utility import no_access_text, error_no_access
 
 from ..keyboards.buttons import main_menu_buttons_from_query
@@ -30,9 +31,11 @@ class UserStates(StatesGroup):
 
 @router.message(Command("start"))
 async def cmd_start_handler(message: Message, state: FSMContext):
+    log_action_with_username(logger, message.text, message.from_user.username, message.from_user.id)
+
     has_access = await is_user(message.from_user.id, message.from_user.username)
-    logger.info(message.from_user.username)
     if not has_access:
+        log_unauthorized(logger, message.from_user.username, message.from_user.id)
         await message.answer(
         text=no_access_text()
         )
@@ -40,11 +43,17 @@ async def cmd_start_handler(message: Message, state: FSMContext):
     
     await state.clear()
     reply_markup = await main_menu_buttons_from_query()
+    link = "https://t.me/+TWPGaiWjuOXDlAPm"
     await message.answer(
-        text=f'Привет, {message.from_user.first_name}!\nЯ – бот-помощник команды визуальных коммуникаций. '\
-        f'Могу найти материалы для презентаций, подобрать подходящую визуализацию или помочь связаться с командой дизайнеров\n\n'\
-        f'Я только начинаю свой путь и стремлюсь развиваться, поэтому буду рад твоей обратной связи и идеям для улучшения!',
-        parse_mode=ParseMode.HTML
+        text=f"Привет, {message.from_user.first_name}!\nЯ бот команды визуальных коммуникаций. "\
+        f"Помогу найти материалы для презентаций, подобрать визуализацию или связаться с дизайнерами "\
+        f"(у них, кстати, ещё и <a href='{link}'>канал</a> есть).\n"\
+        f"Буду рад обратной связи — хочу становиться лучше!\n\n"\
+        f"Hi, {message.from_user.first_name}!\n"\
+        f"I'm the Visual Comms Team's assistant bot. I can help with ready-to-use slides, templates, and other presentation assets. "\
+        f"For materials in English, tap the <b>Wiki Int</b> button. \nAnd if you have feedback, I’m all ears!",
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True
     )
     await message.answer_photo(
         FSInputFile(path="./Data/Appdata/Images/start.png")
@@ -57,9 +66,11 @@ async def cmd_start_handler(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "main_menu")
 async def main_start_handler(callback_query: CallbackQuery, state: FSMContext):
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
     has_access = await is_user(callback_query.from_user.id, callback_query.from_user.username)
-    logger.info(callback_query.from_user.username)
     if not has_access:
+        log_unauthorized(logger, callback_query.from_user.username, callback_query.from_user.id)
         await error_no_access(callback_query)
         return
     
@@ -74,9 +85,11 @@ async def main_start_handler(callback_query: CallbackQuery, state: FSMContext):
 @router.message(Command(commands=["menu"]))
 @router.message(F.text.lower() == "в главное меню")
 async def cmd_cancel_handler(message: Message, state: FSMContext):
+    log_action_with_username(logger, message.text, message.from_user.username, message.from_user.id)
+
     has_access = await is_user(message.from_user.id, message.from_user.username)
-    logger.info(message.from_user.username)
     if not has_access:
+        log_unauthorized(logger, message.from_user.username, message.from_user.id)
         await message.answer(
         text=no_access_text()
         )

@@ -20,6 +20,7 @@ from TelegramHandler.handlers.query_handlers import choose_file as q_choose_file
 async def setup_bot_commands(bot: Bot):
     bot_commands = [
         BotCommand(command="/start", description="Начать работу"),
+        BotCommand(command="/news", description="Следить за новостями"),
         BotCommand(command="/help", description="Нужна помощь")
     ]
     await bot.set_my_commands(bot_commands)
@@ -47,7 +48,7 @@ async def main():
     # Start bot
     await setup_bot_commands(bot)
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot, ssl=False)
+    await dp.start_polling(bot, ssl=False, timeout=30)
 
 
 async def start_bot():

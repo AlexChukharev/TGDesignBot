@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery
 
+from utility.logging_actions import log_action_with_username, log_sending
 from utility.tg_utility import error_final, try_to_delete_message, \
     download_with_link_query, send_file_from_local_for_query, error_text
 
@@ -35,6 +36,8 @@ class WalkerState(StatesGroup):
 
 @router.callback_query(WalkerState.choose_file, F.data == "get_fonts")
 async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
     user_info = await state.get_data()
     template_id = user_info["file_id"]
     list_fonts = get_fonts_by_template_id(template_id)
@@ -56,6 +59,7 @@ async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
     
     try:
         path = list_fonts[0][1] + '/' + list_fonts[0][3]
+        log_sending(logger, path)
         link = get_download_link(path)
         await download_with_link_query(callback_query, link, 'fonts.zip')
 
@@ -73,6 +77,8 @@ async def get_fonts(callback_query: CallbackQuery, state: FSMContext):
 @router.callback_query(WalkerState.choose_file, F.data == "install_fonts_help")
 @router.callback_query(WalkerState.choose_button, F.data == "install_fonts_help")
 async def send_info(callback_query: CallbackQuery):
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
     try:
         await callback_query.message.edit_text(
             text='Готовлю инструкцию, секунду'
@@ -80,6 +86,7 @@ async def send_info(callback_query: CallbackQuery):
     except Exception as e:
         logger.info(e)
     path = './Data/Appdata/Инструкция по установке шрифтов.pdf'
+    log_sending(logger, path)
     await send_file_from_local_for_query(callback_query, path, 'Инструкция по установке шрифтов.pdf')
     reply_markup = await go_back_to_main_menu()
     await try_to_delete_message(callback_query)

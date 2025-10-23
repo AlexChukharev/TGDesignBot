@@ -24,12 +24,16 @@ def rows_for_main_menu():
             text='💼 Готовые слайды о компании',
             callback_data='about_company'
         )],
+        [
+            InlineKeyboardButton(
+            text='👩‍🎨 Вики дизайнеров',
+            callback_data='designer'),
+            InlineKeyboardButton(
+            text='🌎 Wiki Int',
+            callback_data='english_assets')
+        ],
         [InlineKeyboardButton(
-            text='👩‍🎨 Вики команды дизайнеров',
-            callback_data='designer'
-        )],
-        [InlineKeyboardButton(
-            text='❓ Задать вопрос',
+            text='❓ Q&A',
             callback_data='bot_feedback'
         )]
     ]
@@ -41,10 +45,6 @@ def feedback_buttons_row():
         InlineKeyboardButton(
             text='😍',
             callback_data='feedback_great'
-        ),
-        InlineKeyboardButton(
-            text='🙂',
-            callback_data='feedback_good'
         ),
         InlineKeyboardButton(
             text='😔',
@@ -270,7 +270,7 @@ async def tags_buttons(tags: list, can_go_back: bool, need_another_button: bool)
     if need_another_button:
         rows.append([
             InlineKeyboardButton(
-                text='Что-то другое',
+                text='Нужно что-то другое',
                 callback_data='another_idea'
             )
         ])
