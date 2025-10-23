@@ -2,7 +2,6 @@ import asyncio
 import datetime
 import pickle
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 
 from DBHandler.initialize_database import initialize_database
@@ -21,11 +20,6 @@ async def main():
         pickle.dump(tree, fp)
     # Initialize DataBase.
     initialize_database()
-
-    # AutoUpdating information from YaDisk every 12 hours.
-    # scheduler = BackgroundScheduler()
-    # scheduler.add_job(update_tree_and_db, "interval", hours=12)
-    # scheduler.start()
 
     await TGbot.start_bot()
 
