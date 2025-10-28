@@ -617,8 +617,8 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
         if type_file == 'extra_assets':
             await finish_template_search(callback_query, state)
     else:
-        # отдельно рассматривается случай со шрифтами – для них не хотим спускаться до уровня шаблонов — останавливаемся на уровне БЮ (4)
-        if type_file == 'font' and len(path) == 4:
+        # отдельно рассматривается случай со шрифтами – для них не хотим спускаться до уровня шаблонов — останавливаемся на уровне БЮ (5)
+        if type_file == 'font' and len(path) == 5:
             await get_fonts_from_all_pres(callback_query, state)
         else:
             reply_markup = await choose_category_callback(
