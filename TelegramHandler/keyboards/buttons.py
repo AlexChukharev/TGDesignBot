@@ -40,6 +40,38 @@ def rows_for_main_menu():
     return rows
 
 
+def language_rows():
+    rows = [
+    [
+        InlineKeyboardButton(
+            text='🇷🇺',
+            callback_data='set_lang_ru'
+        ),
+        InlineKeyboardButton(
+            text='🇬🇧',
+            callback_data='set_lang_en'
+        )
+    ]
+    ]
+    return rows
+
+
+def intro_language_rows():
+    rows = [
+    [
+        InlineKeyboardButton(
+            text='🇷🇺',
+            callback_data='intro_set_lang_ru'
+        ),
+        InlineKeyboardButton(
+            text='🇬🇧',
+            callback_data='intro_set_lang_en'
+        )
+    ]
+    ]
+    return rows
+
+
 def feedback_buttons_row():
     rows = [
         InlineKeyboardButton(
@@ -110,6 +142,18 @@ def next_inline_button() -> InlineKeyboardButton:
 
 async def main_menu_buttons_from_query() -> InlineKeyboardMarkup:
     rows = rows_for_main_menu()
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+
+async def language_buttons_from_query() -> InlineKeyboardMarkup:
+    rows = language_rows()
+    markup = InlineKeyboardMarkup(inline_keyboard=rows)
+    return markup
+
+
+async def intro_language_buttons_from_query() -> InlineKeyboardMarkup:
+    rows = intro_language_rows()
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     return markup
 

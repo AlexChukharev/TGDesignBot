@@ -1,0 +1,7 @@
+prefix: menu
+messages:
+  main:
+    ru: |
+        Чем могу помочь?
+    en: |
+        How can I help?

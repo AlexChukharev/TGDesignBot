@@ -23,6 +23,8 @@ from aiogram.utils.chat_action import ChatActionSender
 from TelegramHandler.keyboards import go_back_to_main_menu
 from YandexDisk import get_download_link
 
+from messages.messages_store import store
+
 
 logger = logging.getLogger(__name__)
 
@@ -367,8 +369,8 @@ def no_access_text() -> str:
     """
         Текст для пользователя, если у него нет доступа
     """
-    return 'Привет! Я бот команды визуальных коммуникаций Яндекса\nК сожалению, у тебя нет доступа :(\n\n Если ты тоже из Яндекса, проверь привязан ли телеграм к стаффу'
-
+    msg_text = store.get("no_access.no_access", "ru")
+    return msg_text
 
 async def error_no_access(callback_query: CallbackQuery):
     """

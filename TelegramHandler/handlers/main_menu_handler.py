@@ -12,7 +12,9 @@ from utility.checkers import is_user
 from utility.logging_actions import log_action_with_username, log_unauthorized
 from utility.tg_utility import no_access_text, error_no_access
 
-from ..keyboards.buttons import main_menu_buttons_from_query
+from ..keyboards.buttons import intro_language_buttons_from_query, main_menu_buttons_from_query
+
+from messages.messages_store import store
 
 
 router = Router()
@@ -42,24 +44,17 @@ async def cmd_start_handler(message: Message, state: FSMContext):
         return
     
     await state.clear()
-    reply_markup = await main_menu_buttons_from_query()
-    link = "https://t.me/+TWPGaiWjuOXDlAPm"
-    await message.answer(
-        text=f"Привет, {message.from_user.first_name}!\nЯ бот команды визуальных коммуникаций. "\
-        f"Помогу найти материалы для презентаций, подобрать визуализацию или связаться с дизайнерами "\
-        f"(у них, кстати, ещё и <a href='{link}'>канал</a> есть).\n"\
-        f"Буду рад обратной связи — хочу становиться лучше!\n\n"\
-        f"Hi, {message.from_user.first_name}!\n"\
-        f"I'm the Visual Comms Team's assistant bot. I can help with ready-to-use slides, templates, and other presentation assets. "\
-        f"For materials in English, tap the <b>Wiki Int</b> button. \nAnd if you have feedback, I’m all ears!",
-        parse_mode=ParseMode.HTML,
-        disable_web_page_preview=True
-    )
+    reply_markup = await intro_language_buttons_from_query()
+
     await message.answer_photo(
         FSInputFile(path="./Data/Appdata/Images/start.png")
     )
+
+    msg_text = store.get("intro.lang", "ru")
+    msg_text += store.get("intro.lang", "en")
     await message.answer(
-        text="Чем могу помочь?",
+        text=msg_text,
+        parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
 
