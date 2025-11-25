@@ -47,3 +47,17 @@ messages:
     en: |
         Here you’ll find universal elements you can use in any presentation
         What are you looking for?
+
+  start_tags_search:
+    ru: |
+        Что хочешь нарисовать?
+    en: |
+        What do you want to visualize?
+
+  tags_search_on_template:
+    ru: |
+        Отлично, делаем презентацию в шаблоне <b>{template}</b>
+        Теперь расскажи, какой слайд нам нужен'
+    en: |
+        Great! We’ll use the <b>{template}</b> template.
+        So, which slide do we need?

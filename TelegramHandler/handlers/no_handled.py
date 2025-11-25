@@ -25,7 +25,7 @@ async def no_handled_message(message: Message):
     if not has_access:
         log_unauthorized(logger, message.from_user.username, message.from_user.id)
         await message.answer(
-        text=no_access_text()
+        text=no_access_text("ru")
         )
         return
 
@@ -39,8 +39,8 @@ async def no_handled_query(callback_query: CallbackQuery):
         await choose_language(callback_query)
         return
     
-    reply_markup = await go_back_to_main_menu()
-    reply_text = messages_store.get("no_handled.query", "lang")
+    reply_markup = await go_back_to_main_menu(lang)
+    reply_text = messages_store.get("no_handled.query", lang)
     await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,

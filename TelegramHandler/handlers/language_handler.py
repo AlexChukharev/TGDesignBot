@@ -38,10 +38,9 @@ async def intro_set_language_handler(callback_query: CallbackQuery, state: FSMCo
     set_user_lang(callback_query.from_user.id, lang)
 
     await state.clear()
-    reply_markup = await main_menu_buttons_from_query()
-    link = "https://t.me/+TWPGaiWjuOXDlAPm"
+    reply_markup = await main_menu_buttons_from_query(lang)
 
-    msg_text = store.get("intro.intro", lang, name=callback_query.from_user.first_name, link=link)
+    msg_text = store.get("intro.intro", lang, name=callback_query.from_user.first_name)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text=msg_text,
@@ -71,7 +70,7 @@ async def intro_set_language_handler(callback_query: CallbackQuery, state: FSMCo
     set_user_lang(callback_query.from_user.id, lang)
 
     await state.clear()
-    reply_markup = await main_menu_buttons_from_query()
+    reply_markup = await main_menu_buttons_from_query(lang)
 
     msg_text = store.get("menu.main", lang)
     await callback_query.bot.send_message(
@@ -89,7 +88,7 @@ async def cmd_start_handler(message: Message, state: FSMContext):
     if not has_access:
         log_unauthorized(logger, message.from_user.username, message.from_user.id)
         await message.answer(
-        text=no_access_text()
+        text=no_access_text("ru")
         )
         return
     

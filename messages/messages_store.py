@@ -3,6 +3,7 @@ import glob, os, time, threading
 from typing import Dict, Optional
 
 import yaml
+import random
 
 
 class _SafeDict(dict):
@@ -120,3 +121,14 @@ class TextStore:
 
 # наше глобальное хранилище текстов, файлы пересчитываются раз в полчаса
 store = TextStore(directory="CONFIG/texts", default_lang="ru", check_every=1800.0)
+
+def get_random_from_prefix(prefix: str, lang: str) -> str:
+    """
+    Берёт все ключи, которые начинаются с 'prefix.', и возвращает
+    случайный текст для одного из них.
+    """
+    candidates = [k for k in store.keys() if k.startswith(prefix + ".")]
+    if not candidates:
+        return f"[{prefix}]"
+    key = random.choice(candidates)
+    return store.get(key, lang)
