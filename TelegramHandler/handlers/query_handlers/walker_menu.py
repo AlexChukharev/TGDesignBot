@@ -8,6 +8,7 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
+from messages.languages import get_user_lang
 from utility.checkers import file_size_in_limit
 from utility.logging_actions import log_action_with_username, log_sending
 from utility.tg_utility import (
@@ -26,8 +27,8 @@ from utility.tg_utility import (
 )
 
 from ...keyboards.buttons import (
-    choose_template_text_inner,
-    choose_template_text_root,
+    choose_text_inner,
+    choose_text_root,
     choose_category_callback,
     get_fonts_buttons_with_feedback,
     go_back_to_main_menu,
@@ -109,8 +110,14 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     await state.set_state(WalkerState.choose_button)
     type_file = await set_file_type(callback_query.data, state)
 
-    root_child_list = tree.get_children(tree.root.name)
+    lang = get_user_lang(callback_query.from_user.id)
+    if not lang:
+        # попросить выбрать язык
+        pass
+    # root_child_list = tree.get_children(tree.root.name)
+    root_child_list = tree.get_children(lang)
     path = [callback_query.data]
+    path.append(lang)
 
     indx_child = 0
     for child in root_child_list:
@@ -137,7 +144,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
         False,
         type_file
     )
-    text = await choose_template_text_root(type_file)
+    text = await choose_text_root(type_file)
     if type_file == 'about_company':
         await finish_template_search(callback_query, state)
         return
@@ -181,7 +188,7 @@ async def paginate_template_find(callback_query: CallbackQuery, state: FSMContex
         can_go_back,
         type_file
     )
-    text = await choose_template_text_inner(path[-1])
+    text = await choose_text_inner(path[-1])
 
     await callback_query.message.edit_text(
         text=text,
@@ -251,9 +258,9 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
         await error_final(callback_query, text)
         return
     elif parent_name == 'Шаблоны':
-        text = await choose_template_text_root(type_file)
+        text = await choose_text_root(type_file)
     else:
-        text = await choose_template_text_inner(tree.get_parent(cur_node_name))
+        text = await choose_text_inner(tree.get_parent(cur_node_name))
 
     await callback_query.message.edit_text(
         text=text,
@@ -618,7 +625,7 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
             await finish_template_search(callback_query, state)
     else:
         # отдельно рассматривается случай со шрифтами – для них не хотим спускаться до уровня шаблонов — останавливаемся на уровне БЮ (5)
-        if type_file == 'font' and len(path) == 5:
+        if type_file == 'font' and len(path) == 6:
             await get_fonts_from_all_pres(callback_query, state)
         else:
             reply_markup = await choose_category_callback(
@@ -628,7 +635,7 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
                 can_go_back,
                 type_file
             )
-            text = await choose_template_text_inner(path[-1])
+            text = await choose_text_inner(path[-1])
             await callback_query.message.edit_text(
                 text=text, 
                 parse_mode=ParseMode.HTML,

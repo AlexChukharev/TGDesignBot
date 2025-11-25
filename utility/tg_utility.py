@@ -6,6 +6,7 @@ import urllib.request
 import shutil
 import zipfile
 import io
+from TelegramHandler.keyboards.buttons import language_buttons_from_query
 import aiohttp
 
 from DBHandler import (get_templates_from_child_directories,
@@ -56,16 +57,8 @@ async def update_indx(state: FSMContext, indx_list_start, indx_list_end) -> None
 async def get_list_of_files(state: FSMContext) -> list:
     user_info = await state.get_data()
     list_of_path = user_info['path']
-    # Check type of search
-    if list_of_path[0] == "Шаблон презентаций":
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
-    elif list_of_path[0] == "Корпоративные шрифты":
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
-    else:
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
+    path = '/'.join(list_of_path[1:])
+    list_of_files = await get_templates_from_child_directories(path)
     return list_of_files
 
 
@@ -380,4 +373,21 @@ async def error_no_access(callback_query: CallbackQuery):
         chat_id=callback_query.from_user.id,
         text=no_access_text(),
         parse_mode=ParseMode.HTML
+    )
+
+async def choose_language(callback_query: CallbackQuery):
+    """
+        Просим выбрать язык бота
+    """
+
+    reply_markup = await language_buttons_from_query()
+
+    msg_text = store.get("intro.lang_old_users", "ru")
+    msg_text += store.get("intro.lang_old_users", "en")
+
+    await callback_query.bot.send_message(
+        chat_id=callback_query.from_user.id,
+        text=msg_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
     )

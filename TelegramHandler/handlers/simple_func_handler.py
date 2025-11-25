@@ -10,8 +10,9 @@ from aiogram.fsm.context import FSMContext
 
 from TelegramHandler.keyboards import go_back_to_main_menu
 
+from messages.languages import get_user_lang
 from utility.logging_actions import log_action_with_username, log_unauthorized
-from utility.tg_utility import no_access_text
+from utility.tg_utility import choose_language, no_access_text
 from utility.checkers import is_user
 
 
@@ -64,9 +65,14 @@ async def cmd_feedback(message: Message, state: FSMContext):
     )
 
 
-@router.callback_query(F.data == "bot_feedback")
+@router.callback_query(F.data == "bot_faq")
 async def cmd_feedback(callback_query: CallbackQuery):
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
+    lang = get_user_lang(callback_query.from_user.id)
+    if not lang:
+        await choose_language(callback_query)
+        return
 
     reply_markup = await go_back_to_main_menu()
     text = f"По любым вопросам, связанным с ботом или материалами, пиши {json.load(open('./CONFIG/config.json'))['owner']}\n\n"\
