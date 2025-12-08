@@ -120,7 +120,6 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
 
     await state.clear()
     await state.set_state(WalkerState.choose_button)
-    print(callback_query.data)
     type_file = await set_file_type(callback_query.data, state)
 
     lang = await language_check(callback_query)
@@ -340,10 +339,14 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
     
     reply_text = messages_store.get("menu.start_tags_search", lang)
     try:
-        with open("./CONFIG/tags_tree.json", "r") as tags_file:
-            tags = json.load(tags_file)
+        if lang == "ru":
+            with open("./CONFIG/tags_tree.json", "r") as tags_file:
+                tags = json.load(tags_file)
+        else:
+            with open("./CONFIG/tags_tree_en.json", "r") as tags_file:
+                tags = json.load(tags_file)
     except Exception as e:
-        logger.info('Error while reading tags_tree.json')
+        logger.info('Error while reading tags_tree')
         logger.info(e)
         text = await error_text(lang)
         await error_final(callback_query, text, lang)
@@ -374,8 +377,12 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
     template = file_name[:-5]
     reply_text = messages_store.get("menu.tags_search_on_template", lang, template=template)
     try:
-        with open("./CONFIG/tags_tree.json", "r") as tags_file:
-            tags = json.load(tags_file)
+        if lang == "ru":
+            with open("./CONFIG/tags_tree.json", "r") as tags_file:
+                tags = json.load(tags_file)
+        else:
+            with open("./CONFIG/tags_tree_en.json", "r") as tags_file:
+                tags = json.load(tags_file)
     except Exception as e:
         logger.info('Error while reading tags_tree.json')
         logger.info(e)
@@ -394,7 +401,7 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
     )
 
 
-async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, tag: str):
+async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, tag, name: str):
     """
         TODO описание
     """
@@ -436,7 +443,7 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     slide_info.add_template_info(template_info)
     get_template_of_slides(path_to_save, slide_info)
     try:
-        file_name_to_send = f'{tag} ({template_name[:-5]}).pptx';
+        file_name_to_send = f'{name} ({template_name[:-5]}).pptx';
         log_sending(logger, file_name_to_send)
         await send_file_from_local_for_query(callback_query, path_to_save, file_name_to_send)
     except Exception as e:
@@ -490,7 +497,7 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
     else:
         # дошли до листа => запускаем генерацию pptx
         if 'tag' in cur_tag:
-            await finish_tags_search(callback_query, state, cur_tag['tag'])
+            await finish_tags_search(callback_query, state, cur_tag['tag'], cur_tag['name'])
         else:
             # такого вообще не должно быть
             logger.info('ATTENTION: Error in tags_search while getting tag')
@@ -550,7 +557,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
             log_sending(logger, str(file_path) + '/' + str(file_name))
             await download_with_link_query(callback_query, link, file_name, lang)
             if type_file == "extra_assets":
-                if ("Логотипы" in parent_name) or ("Logos" in parent_name):
+                if ("Логотипы" in parent_name) or ("logos" in parent_name):
                     reply_markup = await go_back_to_main_menu_with_feedback_and_freshness(lang)
                 else:
                     reply_markup = await go_back_to_main_menu_with_feedback(lang)
@@ -610,7 +617,10 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
                 )
         else:
             # отрезаем два символа – эмоджи и пробел
-            item_name = user_info['path'][-1][2:]
+            if lang == 'ru':
+                item_name = user_info['path'][-1][2:]
+            else:
+                item_name = user_info['path'][-1]
             await callback_query.message.edit_text(
                     text=messages_store.get("sending.fonts_for_unit", lang, item_name=item_name),
                     parse_mode=ParseMode.HTML

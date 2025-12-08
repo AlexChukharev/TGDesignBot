@@ -34,7 +34,7 @@ messages:
     ru: |
       👩‍🎨 Вики дизайнеров
     en: |
-      📎 Design Request Form
+      📎 Design Request
 
   bot_faq:
     ru: |
@@ -100,7 +100,7 @@ messages:
     ru: |
       Нужно что-то другое
     en: |
-      Need smth else
+      Need another option?
 
   ideas_from_start:
     ru: |

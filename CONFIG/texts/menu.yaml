@@ -32,7 +32,7 @@ messages:
         В каком шаблоне работаешь?
     en: |
         I’ll help you style your content!
-        For now, it’s available only for the Yango template
+        For now, it’s available <b>only for the Yango template</b>
 
   choose_text_root_about_company:
     ru: |

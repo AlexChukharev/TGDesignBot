@@ -28,16 +28,14 @@ def rows_for_main_menu(lang: str):
         )],
         [
             InlineKeyboardButton(
-            text=messages_store.get("buttons.designer", lang),
-            callback_data='designer'),
+                text=messages_store.get("buttons.designer", lang),
+                callback_data='designer'
+            ),
             InlineKeyboardButton(
-            text='🌎 Wiki Int',
-            callback_data='english_assets')
-        ],
-        [InlineKeyboardButton(
-            text=messages_store.get("buttons.bot_faq", lang),
-            callback_data='bot_faq'
-        )]
+                text=messages_store.get("buttons.bot_faq", lang),
+                callback_data='bot_faq'
+            )
+        ]
     ]
     return rows
 

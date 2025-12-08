@@ -12,7 +12,7 @@ from aiogram.enums import ParseMode
 from messages.languages import set_user_lang
 from utility.checkers import is_user
 from utility.logging_actions import log_action_with_username, log_unauthorized
-from utility.tg_utility import no_access_text, error_no_access
+from utility.tg_utility import no_access_text, error_no_access, try_to_delete_message
 
 
 from ..keyboards.buttons import language_buttons_from_query, main_menu_buttons_from_query
@@ -39,6 +39,8 @@ async def intro_set_language_handler(callback_query: CallbackQuery, state: FSMCo
 
     await state.clear()
     reply_markup = await main_menu_buttons_from_query(lang)
+
+    await try_to_delete_message(callback_query)
 
     msg_text = store.get("intro.intro", lang, name=callback_query.from_user.first_name)
     await callback_query.bot.send_message(
@@ -72,6 +74,9 @@ async def intro_set_language_handler(callback_query: CallbackQuery, state: FSMCo
     await state.clear()
     reply_markup = await main_menu_buttons_from_query(lang)
 
+
+    await try_to_delete_message(callback_query)
+    
     msg_text = store.get("menu.main", lang)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
