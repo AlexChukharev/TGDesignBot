@@ -1,0 +1,52 @@
+{
+  "comment": "What kind of slide do you need?",
+  "sub_categories": [
+    {
+      "name": "Section divider",
+      "comment": "Great, here are the available formats:",
+      "sub_categories": [
+        {"name": "Cover", "tag": "обложка"},
+        {"name": "Divider", "tag": "разделитель"},
+        {"name": "Table of contents", "tag": "содержание"},
+        {"name": "Final slide", "tag": "финальный_слайд"}
+      ]
+    },
+    {
+      "name": "Text slide",
+      "comment": "What format will the text be in?",
+      "sub_categories": [
+        {"name": "Quote", "tag": "цитата"},
+        {"name": "Up to 4 bullet points", "tag": "тезисы_до_4"},
+        {"name": "5+ bullet points", "tag": "тезисы_от_5"}
+      ]
+    },
+    {
+      "name": "Metrics",
+      "comment": "How many metrics do you need?",
+      "sub_categories": [
+        {"name": "Up to 4 metrics", "tag": "метрики_до_4"},
+        {"name": "5+ metrics", "tag": "метрики_от_5"}
+      ]
+    },
+    {
+      "name": "Infographics",
+      "comment": "What do you want to show in the infographic?",
+      "sub_categories": [
+        {"name": "Timeline", "tag": "таймлайн"},
+        {"name": "Funnel", "tag": "воронка"},
+        {"name": "Process", "tag": "процесс"},
+        {"name": "Chart", "tag": "график"},
+        {"name": "Table", "tag": "таблица"},
+        {"name": "Scheme/structure)", "tag": "схема"}
+      ]
+    },
+    {
+      "name": "Image slides",
+      "comment": "What type of images will be on the slide?",
+      "sub_categories": [
+        {"name": "Photo", "tag": "фото"},
+        {"name": "Screenshots", "tag": "скриншот"}
+      ]
+    }
+  ]
+}
