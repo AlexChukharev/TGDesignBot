@@ -11,7 +11,7 @@ from aiogram.enums import ParseMode
 from messages.languages import get_user_lang
 from utility.checkers import is_user
 from utility.logging_actions import log_action_with_username, log_unauthorized
-from utility.tg_utility import access_and_language_check, choose_language, no_access_text, error_no_access
+from utility.tg_utility import access_and_language_check, language_check, no_access_text, error_no_access
 
 from ..keyboards.buttons import intro_language_buttons_from_query, main_menu_buttons_from_query
 
@@ -70,9 +70,8 @@ async def main_start_handler(callback_query: CallbackQuery, state: FSMContext):
         await error_no_access(callback_query)
         return
     
-    lang = get_user_lang(callback_query.from_user.id)
+    lang = await language_check(callback_query)
     if not lang:
-        await choose_language(callback_query)
         return
 
     await state.clear()

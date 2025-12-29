@@ -250,7 +250,7 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name
         await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name}.zip')
     except Exception as e:
         text = await error_text(lang)
-        await callback_query.answer(
+        await callback_query.message.edit_text(
             text=text
         )
         logger.info(e)
@@ -384,7 +384,7 @@ async def error_no_access(callback_query: CallbackQuery):
     )
 
 
-async def choose_language(callback_query: CallbackQuery):
+async def choose_language_query(callback_query: CallbackQuery):
     """
         Просим выбрать язык бота
     """
@@ -395,8 +395,7 @@ async def choose_language(callback_query: CallbackQuery):
     msg_text = messages_store.get("intro.lang_old_users", "ru")
     msg_text += messages_store.get("intro.lang_old_users", "en")
 
-    await callback_query.bot.send_message(
-        chat_id=callback_query.from_user.id,
+    await callback_query.message.edit_text(
         text=msg_text,
         parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
@@ -439,7 +438,7 @@ async def access_and_language_check(message: Message) -> Optional[str]:
 async def language_check(callback_query: CallbackQuery) -> Optional[str]:
     lang = get_user_lang(callback_query.from_user.id)
     if not lang:
-        await choose_language(callback_query)
+        await choose_language_query(callback_query)
         return None
     
     return lang

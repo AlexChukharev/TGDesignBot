@@ -43,13 +43,13 @@ async def intro_set_language_handler(callback_query: CallbackQuery, state: FSMCo
     await try_to_delete_message(callback_query)
 
     msg_text = store.get("intro.intro", lang, name=callback_query.from_user.first_name)
+    await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text=msg_text,
         parse_mode=ParseMode.HTML,
         disable_web_page_preview=True
     )
-
     msg_text = store.get("menu.main", lang)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -81,6 +81,7 @@ async def intro_set_language_handler(callback_query: CallbackQuery, state: FSMCo
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
         text=msg_text,
+        parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
 
