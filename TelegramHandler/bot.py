@@ -56,7 +56,7 @@ async def main():
 async def start_bot():
     if not os.path.exists("./logs"):
         os.mkdir("./logs")
-    handler = TimedRotatingFileHandler(filename='./logs/runtime.log', when='D', interval=1, backupCount=90, encoding='utf-8', delay=False)
+    handler = TimedRotatingFileHandler(filename='./logs/runtime.log', when='D', interval=1, encoding='utf-8', delay=False)
     formatter = Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     logging.basicConfig(level=logging.INFO, handlers=[handler])
