@@ -10,10 +10,12 @@ from aiogram.fsm.context import FSMContext
 
 from TelegramHandler.keyboards import go_back_to_main_menu
 
+from messages.languages import get_user_lang
 from utility.logging_actions import log_action_with_username, log_unauthorized
-from utility.tg_utility import no_access_text
+from utility.tg_utility import access_and_language_check, choose_language, language_check, no_access_text
 from utility.checkers import is_user
 
+from messages.messages_store import store as messages_store
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -23,17 +25,14 @@ logger = logging.getLogger(__name__)
 async def cmd_feedback(message: Message, state: FSMContext):
     log_action_with_username(logger, message.text, message.from_user.username, message.from_user.id)
 
-    has_access = await is_user(message.from_user.id, message.from_user.username)
-    if not has_access:
-        log_unauthorized(logger, message.from_user.username, message.from_user.id)
-        await message.answer(
-        text=no_access_text()
-        )
+    lang = await access_and_language_check(message)
+    if not lang:
         return
-    
+
     await state.clear()
-    reply_markup = await go_back_to_main_menu()
-    text = f"По любым проблемам, связанным с ботом или материалами, обязательно пиши {json.load(open('./CONFIG/config.json'))['owner']}"
+    reply_markup = await go_back_to_main_menu(lang)
+    owner = json.load(open('./CONFIG/config.json'))['owner']
+    text = messages_store.get("simples.help", lang, owner=owner)
     await message.answer(
         text=text,
         parse_mode=ParseMode.HTML,
@@ -45,18 +44,13 @@ async def cmd_feedback(message: Message, state: FSMContext):
 async def cmd_feedback(message: Message, state: FSMContext):
     log_action_with_username(logger, message.text, message.from_user.username, message.from_user.id)
 
-    has_access = await is_user(message.from_user.id, message.from_user.username)
-    if not has_access:
-        log_unauthorized(logger, message.from_user.username, message.from_user.id)
-        await message.answer(
-        text=no_access_text()
-        )
+    lang = await access_and_language_check(message)
+    if not lang:
         return
     
     await state.clear()
-    reply_markup = await go_back_to_main_menu()
-    link = "https://t.me/+TWPGaiWjuOXDlAPm"
-    text = f"<a href='{link}'>На канале</a> делимся самыми интересными апдейтами: \nновости бота, изменения в материалах и немного закулисья"
+    reply_markup = await go_back_to_main_menu(lang)
+    text = messages_store.get("simples.news", lang)
     await message.answer(
         text=text,
         parse_mode=ParseMode.HTML,
@@ -64,13 +58,17 @@ async def cmd_feedback(message: Message, state: FSMContext):
     )
 
 
-@router.callback_query(F.data == "bot_feedback")
+@router.callback_query(F.data == "bot_faq")
 async def cmd_feedback(callback_query: CallbackQuery):
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
-    reply_markup = await go_back_to_main_menu()
-    text = f"По любым вопросам, связанным с ботом или материалами, пиши {json.load(open('./CONFIG/config.json'))['owner']}\n\n"\
-        f"Have any questions or suggestions about the bot or the materials? \nPlease, drop a message to {json.load(open('./CONFIG/config.json'))['owner']}"
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+
+    reply_markup = await go_back_to_main_menu(lang)
+    owner = json.load(open('./CONFIG/config.json'))['owner']
+    text = messages_store.get("simples.bot_faq", lang, owner=owner)
     await callback_query.message.edit_text(
         text=text,
         parse_mode=ParseMode.HTML,
@@ -83,9 +81,12 @@ async def cmd_feedback(callback_query: CallbackQuery):
 async def cmd_feedback(callback_query: CallbackQuery):
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
-    reply_markup = await go_back_to_main_menu()
-    link = "https://wiki.yandex-team.ru/viscomms/"
-    text = f"Держи, вот <a href='{link}'>ссылка на вики</a>"
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+
+    reply_markup = await go_back_to_main_menu(lang)
+    text = messages_store.get("simples.designer", lang)
     await callback_query.message.edit_text(
         text=text,
         parse_mode=ParseMode.HTML,
@@ -97,9 +98,12 @@ async def cmd_feedback(callback_query: CallbackQuery):
 async def cmd_feedback(callback_query: CallbackQuery):
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
-    reply_markup = await go_back_to_main_menu()
-    link = "https://wiki.yandex-team.ru/viscomms/yango-group-presentations/"
-    text = f"Here you go: <a href='{link}'>the wiki with all relevant assets</a>"
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+
+    reply_markup = await go_back_to_main_menu(lang)
+    text = messages_store.get("simples.english_assets", lang)
     await callback_query.message.edit_text(
         text=text,
         parse_mode=ParseMode.HTML,

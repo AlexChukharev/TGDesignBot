@@ -1,0 +1,35 @@
+prefix: simples
+messages:
+  help:
+    ru: |
+      По любым проблемам, связанным с ботом или материалами, обязательно пиши {owner}
+    en: |
+      For any issues related to the bot or materials, please contact {owner}
+  
+  news:
+    ru: |
+      <a href='https://t.me/+TWPGaiWjuOXDlAPm'>На канале</a> делимся самыми интересными апдейтами:
+      новости бота, полезные материалы и закулисье работы дизайнера
+    en: |
+      We share our most interesting updates <a href='https://t.me/+TWPGaiWjuOXDlAPm'>on the channel</a>:
+      bot news, useful materials, and behind-the-scenes design stories.
+      The channel is available in Russian only
+
+  designer:
+    ru: |
+      Держи, вот <a href='https://wiki.yandex-team.ru/viscomms/'>ссылка на вики</a>
+    en: |
+      Please <a href='https://forms.yandex-team.ru/ext/surveys/13804810/'>fill out this form</a> to create a ticket for the design team
+
+  english_assets:
+    ru: |
+      Here you go: <a href='https://wiki.yandex-team.ru/viscomms/yango-group-presentations/'>the wiki with all relevant assets</a>
+    en: |
+      Here you go: <a href='https://wiki.yandex-team.ru/viscomms/yango-group-presentations/'>the wiki with all relevant assets</a>
+
+  bot_faq:
+    ru: |
+      По любым вопросам, связанным с ботом или материалами, пиши {owner}
+    en: |
+      Have any questions or suggestions about the bot or the materials?
+      Please, drop a message to {owner}

@@ -8,10 +8,13 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
+from messages.languages import get_user_lang
+from messages.messages_store import get_random_from_prefix, store as messages_store
+
 from utility.checkers import file_size_in_limit
 from utility.logging_actions import log_action_with_username, log_sending
 from utility.tg_utility import (
-    from_button_to_file, change_state_to_tags,
+    from_button_to_file, change_state_to_tags, language_check,
     set_file_type,
     start_send_fonts_for_query,
     can_go_left as check_left,
@@ -26,8 +29,8 @@ from utility.tg_utility import (
 )
 
 from ...keyboards.buttons import (
-    choose_template_text_inner,
-    choose_template_text_root,
+    choose_text_inner,
+    choose_text_root,
     choose_category_callback,
     get_fonts_buttons_with_feedback,
     go_back_to_main_menu,
@@ -74,19 +77,29 @@ async def load_tree() -> Tree:
     return pickle.load(open("./Tree/ObjectTree.pkl", "rb"))
 
 
-def get_disk_folder_name(query_type: str) -> str:
+def get_disk_folder_name(query_type, lang: str) -> str:
     """
         Получает название папки на Я. Диске, 
         в которой содержатся материалы соответствующие типу запроса
     """
-    if query_type in ['pres_templates', 'fonts']:
-        return 'Шаблоны'
-    if query_type == 'search_by_tags':
-        return 'Advanced'
-    if query_type == 'about_company':
-        return 'Слайды о компании'
-    if query_type == 'extra_assets':
-        return 'Дополнительные материалы'
+    if lang == "ru":
+        if query_type in ['pres_templates', 'fonts']:
+            return 'Шаблоны'
+        if query_type == 'search_by_tags':
+            return 'Advanced'
+        if query_type == 'about_company':
+            return 'Слайды о компании'
+        if query_type == 'extra_assets':
+            return 'Дополнительные материалы'
+    else:
+        if query_type in ['pres_templates', 'fonts']:
+            return 'Templates'
+        if query_type == 'search_by_tags':
+            return 'Advanced_en'
+        if query_type == 'about_company':
+            return 'About company'
+        if query_type == 'extra_assets':
+            return 'Useful assets'
 
 
 @router.callback_query(F.data == "pres_templates")
@@ -109,12 +122,17 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     await state.set_state(WalkerState.choose_button)
     type_file = await set_file_type(callback_query.data, state)
 
-    root_child_list = tree.get_children(tree.root.name)
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+    
+    root_child_list = tree.get_children(lang)
     path = [callback_query.data]
+    path.append(lang)
 
     indx_child = 0
     for child in root_child_list:
-        if child == get_disk_folder_name(callback_query.data):
+        if child == get_disk_folder_name(callback_query.data, lang):
             break
         indx_child += 1
     path.append(root_child_list[indx_child])
@@ -135,9 +153,10 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
         can_go_left,
         can_go_right,
         False,
-        type_file
+        type_file,
+        lang
     )
-    text = await choose_template_text_root(type_file)
+    text = await choose_text_root(type_file, lang)
     if type_file == 'about_company':
         await finish_template_search(callback_query, state)
         return
@@ -149,7 +168,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     )
 
 
-async def paginate_template_find(callback_query: CallbackQuery, state: FSMContext, direction: str):
+async def paginate_template_find(callback_query: CallbackQuery, state: FSMContext, direction, lang: str):
     """
         TODO описание
     """
@@ -179,9 +198,10 @@ async def paginate_template_find(callback_query: CallbackQuery, state: FSMContex
         can_go_left,
         can_go_right,
         can_go_back,
-        type_file
+        type_file,
+        lang
     )
-    text = await choose_template_text_inner(path[-1])
+    text = await choose_text_inner(path[-1], lang)
 
     await callback_query.message.edit_text(
         text=text,
@@ -198,7 +218,12 @@ async def next_template_find(callback_query: CallbackQuery, state: FSMContext):
         Processes 'next block of directories' action
     """
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
-    await paginate_template_find(callback_query, state, "next")
+    
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+    
+    await paginate_template_find(callback_query, state, "next", lang)
 
 
 @router.callback_query(WalkerState.choose_button, F.data == "prev")
@@ -207,7 +232,12 @@ async def prev_template_find(callback_query: CallbackQuery, state: FSMContext):
         Processes 'prev block of directories' action
     """
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
-    await paginate_template_find(callback_query, state, "prev")
+    
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+    
+    await paginate_template_find(callback_query, state, "prev", lang)
 
 
 @router.callback_query(WalkerState.choose_button, F.data == "prev_dir")
@@ -218,6 +248,10 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+    
     tree = await load_tree()
     config = await load_config()
     dist_indx = config['dist']
@@ -242,18 +276,19 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
         can_go_left,
         can_go_right,
         can_go_back,
-        type_file
+        type_file,
+        lang
     )
 
     if parent_name == "root":
         logger.info('Trying get the root folders')
-        text = await error_text()
-        await error_final(callback_query, text)
+        text = await error_text(lang)
+        await error_final(callback_query, text, lang)
         return
-    elif parent_name == 'Шаблоны':
-        text = await choose_template_text_root(type_file)
+    elif (parent_name == 'Шаблоны') or (parent_name == 'Templates'):
+        text = await choose_text_root(type_file, lang)
     else:
-        text = await choose_template_text_inner(tree.get_parent(cur_node_name))
+        text = await choose_text_inner(tree.get_parent(cur_node_name), lang)
 
     await callback_query.message.edit_text(
         text=text,
@@ -271,13 +306,17 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+
     state_info = await state.get_data()
     # tags_on_prev_step_dict = state_info['tags']
     # reply_markup = await tags_buttons(tags_on_prev_step_dict['sub_categories'], ('parent' in tags_on_prev_step_dict), False)  
-    reply_markup = await ideas_final_buttons()
+    reply_markup = await ideas_final_buttons(lang)
       
-    reply_text = f"Если нет подходящего варианта, напиши {json.load(open('./CONFIG/config.json'))['owner']}"\
-        "\n\nА пока, возможно, тебе поможет что-то из готового?"
+    owner = json.load(open('./CONFIG/config.json'))['owner']
+    reply_text = messages_store.get("feedback.more_tags", lang, owner=owner)
     
     await callback_query.message.edit_text(
         text=reply_text,
@@ -294,19 +333,27 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
-    reply_text = f'Что хочешь нарисовать?'
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+    
+    reply_text = messages_store.get("menu.start_tags_search", lang)
     try:
-        with open("./CONFIG/tags_tree.json", "r") as tags_file:
-            tags = json.load(tags_file)
+        if lang == "ru":
+            with open("./CONFIG/tags_tree.json", "r") as tags_file:
+                tags = json.load(tags_file)
+        else:
+            with open("./CONFIG/tags_tree_en.json", "r") as tags_file:
+                tags = json.load(tags_file)
     except Exception as e:
-        logger.info('Error while reading tags_tree.json')
+        logger.info('Error while reading tags_tree')
         logger.info(e)
-        text = await error_text()
-        await error_final(callback_query, text)
+        text = await error_text(lang)
+        await error_final(callback_query, text, lang)
         return
     await state.update_data(tags=tags)
 
-    reply_markup = await tags_buttons(tags['sub_categories'], False, True)
+    reply_markup = await tags_buttons(tags['sub_categories'], False, True, lang)
     await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -321,21 +368,30 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
         TODO описание
     """
 
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+
     file_name = files_list[0][2]
     file_path = files_list[0][1]
-    reply_text = f'Отлично, делаем презентацию в шаблоне <b>{file_name[:-5]}</b>\nТеперь расскажи, какой слайд нам нужен'
+    template = file_name[:-5]
+    reply_text = messages_store.get("menu.tags_search_on_template", lang, template=template)
     try:
-        with open("./CONFIG/tags_tree.json", "r") as tags_file:
-            tags = json.load(tags_file)
+        if lang == "ru":
+            with open("./CONFIG/tags_tree.json", "r") as tags_file:
+                tags = json.load(tags_file)
+        else:
+            with open("./CONFIG/tags_tree_en.json", "r") as tags_file:
+                tags = json.load(tags_file)
     except Exception as e:
         logger.info('Error while reading tags_tree.json')
         logger.info(e)
-        text = await error_text()
-        await error_final(callback_query, text)
+        text = await error_text(lang)
+        await error_final(callback_query, text, lang)
         return
     await change_state_to_tags(state, WalkerState.tags_search, files_list, [file_name], [file_path], tags)
 
-    reply_markup = await tags_buttons(tags['sub_categories'], False, True)
+    reply_markup = await tags_buttons(tags['sub_categories'], False, True, lang)
     await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -345,16 +401,20 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
     )
 
 
-async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, tag: str):
+async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, tag, name: str):
     """
         TODO описание
     """
 
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+
     # данные по шаблону
     files_list = await get_list_of_files(state)
     if not files_list:
-        text = await error_text()
-        await error_final(callback_query, text)
+        text = await error_text(lang)
+        await error_final(callback_query, text, lang)
         return
     template_id = files_list[0][0]
     template_name = files_list[0][2]
@@ -362,11 +422,12 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     # получаем слайды по тегам
     slides_list = get_slides_by_tags_and_template_id([tag], template_id)
     if not len(slides_list):
-        await error_final(callback_query, "Ничего не нашел :(")
+        text = await error_text(lang)
+        await error_final(callback_query, text, lang)
         return
     try:
         await callback_query.message.edit_text(
-            text='Принято. Сейчас подготовлю варианты и отправлю, это может занять пару минут'
+            text=messages_store.get("sending.tags_in_process", lang)
         )
     except Exception as e:
         logger.info(e)
@@ -382,18 +443,18 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
     slide_info.add_template_info(template_info)
     get_template_of_slides(path_to_save, slide_info)
     try:
-        file_name_to_send = f'{tag} ({template_name[:-5]}).pptx';
+        file_name_to_send = f'{name} ({template_name[:-5]}).pptx';
         log_sending(logger, file_name_to_send)
         await send_file_from_local_for_query(callback_query, path_to_save, file_name_to_send)
     except Exception as e:
         logger.info('Error while send_file_from_local_for_query in finish_tags_search')
         logger.info(e)
 
-    reply_markup = await ideas_final_buttons_with_feedback()
+    reply_markup = await ideas_final_buttons_with_feedback(lang)
     await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
-        text="Готово!\nОцени, пожалуйста, помогли ли тебе эти варианты",
+        text=messages_store.get("sending.tags_done", lang),
         reply_markup=reply_markup
     )
     remove_template(path_to_save)
@@ -407,6 +468,10 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+    
     state_info = await state.get_data()
     tags_on_prev_step_dict = state_info['tags']
     chosen_tag_id = int(callback_query.data) - 1
@@ -422,7 +487,7 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
     if 'sub_categories' in cur_tag:
         # не дошли до листа => ищем тег дальше
         new_tags = cur_tag['sub_categories']
-        reply_markup = await tags_buttons(new_tags, ('parent' in cur_tag), True)
+        reply_markup = await tags_buttons(new_tags, ('parent' in cur_tag), True, lang)
         await try_to_delete_message(callback_query)
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
@@ -432,18 +497,22 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
     else:
         # дошли до листа => запускаем генерацию pptx
         if 'tag' in cur_tag:
-            await finish_tags_search(callback_query, state, cur_tag['tag'])
+            await finish_tags_search(callback_query, state, cur_tag['tag'], cur_tag['name'])
         else:
             # такого вообще не должно быть
             logger.info('ATTENTION: Error in tags_search while getting tag')
-            text = await error_text()
-            await error_final(callback_query, text)
+            text = await error_text(lang)
+            await error_final(callback_query, text, lang)
 
 
 async def finish_template_search(callback_query: CallbackQuery, state: FSMContext):
     """
         TODO описание
     """
+
+    lang = await language_check(callback_query)
+    if not lang:
+        return
 
     user_info = await state.get_data()
 
@@ -453,8 +522,8 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     files_list = await get_list_of_files(state)
     type_file = user_info['type_file']
     if not files_list:
-        text = await error_text()
-        await error_final(callback_query, text)
+        text = await error_text(lang)
+        await error_final(callback_query, text, lang)
         return
     file_name = files_list[0][2]
     file_path = files_list[0][1]
@@ -466,12 +535,12 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         link = get_download_link(str(file_path) + '/' + str(file_name))
         file_size = get_file_size(str(file_path) + '/' + str(file_name))
     except Exception:
-        reply_markup = await go_back_to_main_menu()
+        reply_markup = await go_back_to_main_menu(lang)
         template_info = TemplateInfo(str(file_name), str(file_path))
         template_id = get_template_id_by_name(template_info.path, template_info.name)
         delete_template(template_id)
         await try_to_delete_message(callback_query)
-        text = await error_text()
+        text = await error_text(lang)
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
             text=text,
@@ -482,39 +551,37 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     # TODO перенести отправку в отдельную функцию
     if file_size_in_limit(file_size):
         await callback_query.message.edit_text(
-            text=f'Супер, отправляю! Это займет немного времени'
+            text=get_random_from_prefix("waiting", lang)
         )
         try:
             log_sending(logger, str(file_path) + '/' + str(file_name))
-            await download_with_link_query(callback_query, link, file_name)
+            await download_with_link_query(callback_query, link, file_name, lang)
             if type_file == "extra_assets":
-                if "Логотипы" in parent_name:
-                    reply_markup = await go_back_to_main_menu_with_feedback_and_freshness()
+                if ("Логотипы" in parent_name) or ("logos" in parent_name):
+                    reply_markup = await go_back_to_main_menu_with_feedback_and_freshness(lang)
                 else:
-                    reply_markup = await go_back_to_main_menu_with_feedback()
+                    reply_markup = await go_back_to_main_menu_with_feedback(lang)
                 await try_to_delete_message(callback_query)
                 await callback_query.bot.send_message(
                     chat_id=callback_query.from_user.id,
-                    text="Держи!\nКак посмотришь, оцени качество материала, пожалуйста 👀",
+                    text=messages_store.get("sending.extra_assets_done", lang),
                     reply_markup=reply_markup
                 )
             else:
-                reply_markup = await get_fonts_buttons_with_feedback()
+                reply_markup = await get_fonts_buttons_with_feedback(lang)
                 await try_to_delete_message(callback_query)
                 await callback_query.bot.send_message(
                     chat_id=callback_query.from_user.id,
-                    text=f'Держи файл!\n'\
-                        f'Как посмотришь, оцени качество материала, пожалуйста 👀\n\n'\
-                        f'Если работаешь с шаблоном первый раз, не забудь установить корпоративные шрифты',
+                    text=messages_store.get("sending.templates_done", lang),
                     reply_markup=reply_markup
                 )
         except Exception as e:
-            text = await error_text()
-            await error_final(callback_query, text)
+            text = await error_text(lang)
+            await error_final(callback_query, text, lang)
             logger.info(e)
             return
     else:
-        reply_markup = await get_fonts_buttons()
+        reply_markup = await get_fonts_buttons(lang)
         await try_to_delete_message(callback_query)
         await callback_query.bot.send_message(
             chat_id=callback_query.from_user.id,
@@ -532,40 +599,50 @@ async def get_fonts_from_all_pres(callback_query: CallbackQuery, state: FSMConte
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+
     user_info = await state.get_data()
     path = '/'.join(user_info['path'][1:])
     
     # определяем сообщение и имя архива — отдельно обрабатываем корень
     item_name = ''
     try:
-        if user_info['path'][-1] == 'Шаблоны':
+        if (user_info['path'][-1] == 'Шаблоны') or (user_info['path'][-1] == 'Templates'):
             item_name = 'all'
             await callback_query.message.edit_text(
-                    text=f"Отправляю шрифты для всех наших презентаций, секунду...",
+                    text=messages_store.get("sending.all_fonts", lang),
                     parse_mode=ParseMode.HTML
                 )
         else:
             # отрезаем два символа – эмоджи и пробел
-            item_name = user_info['path'][-1][2:]
+            if lang == 'ru':
+                item_name = user_info['path'][-1][2:]
+            else:
+                item_name = user_info['path'][-1]
             await callback_query.message.edit_text(
-                    text=f"Отправляю шрифты для <b>{item_name}</b>, секунду...",
+                    text=messages_store.get("sending.fonts_for_unit", lang, item_name=item_name),
                     parse_mode=ParseMode.HTML
                 )
     except Exception as e:
         logger.info(e)
     try:
-        zip_name = f'Шрифты {item_name}'
+        if lang == 'ru':
+            zip_name = f'Шрифты {item_name}'
+        else:
+            zip_name = f'Fonts {item_name}'
         log_sending(logger, "Fonts " + zip_name)
-        await start_send_fonts_for_query(callback_query, path, zip_name)
+        await start_send_fonts_for_query(callback_query, path, zip_name, lang)
     except Exception as e:
         logger.info(e)
         return
     try:
-        reply_markup = await how_to_install_fonts_buttons()
+        reply_markup = await how_to_install_fonts_buttons(lang)
         await try_to_delete_message(callback_query)
         await callback_query.bot.send_message(
             chat_id=callback_query.message.chat.id,
-            text='Готово!',
+            text=get_random_from_prefix("done", lang),
             reply_markup=reply_markup
         )
     except Exception as e:
@@ -580,6 +657,10 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+    
     tree = await load_tree()
     config = await load_config()
 
@@ -618,7 +699,7 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
             await finish_template_search(callback_query, state)
     else:
         # отдельно рассматривается случай со шрифтами – для них не хотим спускаться до уровня шаблонов — останавливаемся на уровне БЮ (5)
-        if type_file == 'font' and len(path) == 5:
+        if type_file == 'font' and len(path) == 6:
             await get_fonts_from_all_pres(callback_query, state)
         else:
             reply_markup = await choose_category_callback(
@@ -626,9 +707,10 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
                 can_go_left,
                 can_go_right,
                 can_go_back,
-                type_file
+                type_file,
+                lang
             )
-            text = await choose_template_text_inner(path[-1])
+            text = await choose_text_inner(path[-1], lang)
             await callback_query.message.edit_text(
                 text=text, 
                 parse_mode=ParseMode.HTML,

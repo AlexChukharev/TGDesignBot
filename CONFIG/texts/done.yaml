@@ -1,0 +1,19 @@
+prefix: done
+messages:
+  opt1:
+    ru: |
+      Готово!
+    en: |
+      Done!
+
+  opt2:
+    ru: |
+      Забирай)
+    en: |
+      Here you go :)
+
+  opt3:
+    ru: |
+      Держи файл!
+    en: |
+      All done!

@@ -1,0 +1,27 @@
+prefix: intro
+messages:
+  intro:
+    ru: |
+      Привет, {name}! Я бот команды визуальных коммуникаций VISCOMMS
+      
+      Помогу найти материалы для презентаций, подобрать визуализацию или связаться с дизайнерами (у них, кстати, ещё и <a href='https://t.me/+TWPGaiWjuOXDlAPm'>канал</a> есть).
+      Буду рад обратной связи — хочу становиться лучше!
+    en: |
+      Hi, {name}! I'm the Visual Comms Team's assistant bot
+
+      I can help with ready-to-use slides, templates, and other presentation assets. And if you have feedback, I’m all ears!
+  
+  lang:
+    ru: |
+      Будем говорить по-русски?
+    en: |
+      Or in English?
+
+  lang_old_users:
+    ru: |
+      Мы добавили локализацию бота на английский! 
+      Но в английской версии будет только переведённая часть материалов
+      
+      Будем говорить по-русски?
+    en: |
+      ... or in English?

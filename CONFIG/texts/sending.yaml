@@ -1,0 +1,59 @@
+prefix: sending
+messages:
+  all_fonts:
+    ru: |
+      Отправляю шрифты для всех наших презентаций, секунду...
+    en: |
+      Sending the full set of brand fonts — just a moment…
+
+  fonts_for_unit:
+    ru: |
+      Отправляю шрифты для <b>{item_name}</b>, секунду...
+    en: |
+      Sending fonts for <b>{item_name}</b>...
+
+  instruction:
+    ru: |
+      Готовлю инструкцию, секунду
+    en: |
+      Preparing instructions, just a sec
+
+  instruction_done:
+    ru: |
+      Это тебе поможет!
+    en: |
+      Hope this helps!
+
+  tags_in_process:
+    ru: |
+      Принято. Сейчас подготовлю варианты и отправлю, это может занять пару минут
+    en: |
+      Got it. Preparing the options — it may take a couple of minutes
+
+  tags_done:
+    ru: |
+      Готово!
+      Оцени, пожалуйста, помогли ли тебе эти варианты
+    en: |
+      Done!
+      Please let me know if these options helped
+
+  extra_assets_done:
+    ru: |
+      Держи!
+      Как посмотришь, оцени качество материала, пожалуйста 🙏
+    en: |
+      Here you go!
+      Once you’ve checked it, please rate the quality 🙏
+
+  templates_done:
+    ru: |
+      Держи файл!
+      Как посмотришь, оцени качество материала, пожалуйста 👀
+
+      Если работаешь с шаблоном первый раз, не забудь установить корпоративные шрифты
+    en: |
+      Here’s the file!
+      Once you’ve checked it, please rate the quality 👀
+      
+      If this is your first time using the template, don’t forget to install the corporate fonts

@@ -2,10 +2,12 @@ import logging
 import json
 import os
 
+from typing import Optional
 import urllib.request
 import shutil
 import zipfile
 import io
+from TelegramHandler.keyboards.buttons import language_buttons_from_query
 import aiohttp
 
 from DBHandler import (get_templates_from_child_directories,
@@ -16,12 +18,18 @@ from aiogram.methods import send_document
 from aiogram.fsm.context import FSMContext
 from aiogram import types
 from aiogram.types import CallbackQuery
+from aiogram.types import Message
 
 from aiogram.enums import ChatAction, ParseMode
 from aiogram.utils.chat_action import ChatActionSender
 
 from TelegramHandler.keyboards import go_back_to_main_menu
 from YandexDisk import get_download_link
+
+from messages.languages import get_user_lang
+from messages.messages_store import store as messages_store
+from utility.checkers import is_user
+from utility.logging_actions import log_action_with_username, log_unauthorized
 
 
 logger = logging.getLogger(__name__)
@@ -54,16 +62,8 @@ async def update_indx(state: FSMContext, indx_list_start, indx_list_end) -> None
 async def get_list_of_files(state: FSMContext) -> list:
     user_info = await state.get_data()
     list_of_path = user_info['path']
-    # Check type of search
-    if list_of_path[0] == "Шаблон презентаций":
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
-    elif list_of_path[0] == "Корпоративные шрифты":
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
-    else:
-        path = '/'.join(list_of_path[1:])
-        list_of_files = await get_templates_from_child_directories(path)
+    path = '/'.join(list_of_path[1:])
+    list_of_files = await get_templates_from_child_directories(path)
     return list_of_files
 
 
@@ -126,16 +126,16 @@ async def admin_from_chose_dir_to_choose_file(state: FSMContext,
 
 
 async def set_file_type(type_file: str, state: FSMContext) -> str:
-    if type_file in ("Шаблон презентаций", "pres_templates"):
+    if type_file == "pres_templates":
         await state.update_data(type_file='template')
         return 'template'
-    elif type_file in ("Корпоративные шрифты", "fonts"):
+    elif type_file == "fonts":
         await state.update_data(type_file='font')
         return 'font'
-    elif type_file in ("Готовые слайды о компании", "about_company"):
+    elif type_file == "about_company":
         await state.update_data(type_file='about_company')
         return 'about_company'
-    elif type_file in ("Дополнительные материалы", "extra_assets"):
+    elif type_file == "extra_assets":
         await state.update_data(type_file='extra_assets')
         return 'extra_assets'
     elif type_file == "search_by_tags":
@@ -144,29 +144,30 @@ async def set_file_type(type_file: str, state: FSMContext) -> str:
     return 'None'
 
 
-async def send_big_file(message: types.Message, link, file_name):
-    file = io.BytesIO()
-    url = link
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, ssl=False) as response:
-            result_bytes = await response.read()
+# async def send_big_file(message: types.Message, link, file_name, lang: str):
+#     file = io.BytesIO()
+#     url = link
+#     async with aiohttp.ClientSession() as session:
+#         async with session.get(url, ssl=False) as response:
+#             result_bytes = await response.read()
 
-    file.write(result_bytes)
-    try:
-        await message.reply_document(
-            document=types.BufferedInputFile(
-                file=file.getvalue(),
-                filename=f'{file_name}',
-            ),
-        )
-    except TelegramNetworkError:
-        await message.answer(
-            text='Не удалось загрузить файл, попробуйте позже'
-        )
-        raise 'TelegramNetworkError'
+#     file.write(result_bytes)
+#     try:
+#         await message.reply_document(
+#             document=types.BufferedInputFile(
+#                 file=file.getvalue(),
+#                 filename=f'{file_name}',
+#             ),
+#         )
+#     except TelegramNetworkError:
+#         text = await error_text(lang)
+#         await message.answer(
+#             text=text
+#         )
+#         raise 'TelegramNetworkError'
 
 
-async def send_big_file_query(callback_query: CallbackQuery, link, file_name):
+async def send_big_file_query(callback_query: CallbackQuery, link, file_name, lang: str):
     file = io.BytesIO()
     url = link
     async with aiohttp.ClientSession() as session:
@@ -183,15 +184,16 @@ async def send_big_file_query(callback_query: CallbackQuery, link, file_name):
             ),
         ).as_(callback_query.bot)
     except TelegramNetworkError:
-        reply_markup = await go_back_to_main_menu()
+        reply_markup = await go_back_to_main_menu(lang)
+        text = await error_text(lang)
         await callback_query.message.edit_text(
-            text='Не удалось загрузить файл, попробуйте позже',
+            text=text,
             reply_markup=reply_markup
         )
         raise 'TelegramNetworkError'
 
 
-async def download_with_link_query(callback_query: CallbackQuery, link, file_name):
+async def download_with_link_query(callback_query: CallbackQuery, link, file_name, lang: str):
     await callback_query.bot.send_chat_action(
         chat_id=callback_query.message.chat.id,
         action=ChatAction.UPLOAD_DOCUMENT,
@@ -200,7 +202,7 @@ async def download_with_link_query(callback_query: CallbackQuery, link, file_nam
         bot=callback_query.bot,
         chat_id=callback_query.message.chat.id,
     ):
-        await send_big_file_query(callback_query, link, file_name)
+        await send_big_file_query(callback_query, link, file_name, lang)
 
 
 async def send_file_from_local_for_query(callback_query: CallbackQuery, path, filename):
@@ -216,7 +218,7 @@ async def send_file_from_local_for_query(callback_query: CallbackQuery, path, fi
     ).as_(callback_query.bot)
 
 
-async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name: str):
+async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name, lang: str):
     """
         Скачивает все шрифты из списка list_data локально, собирает в один архив 
         и отправляет пользователю
@@ -247,8 +249,8 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name
         merge_fonts(user_zip_path, path_to_zip, zip_name)
         await send_file_from_local_for_query(callback_query, path_to_zip, f'{zip_name}.zip')
     except Exception as e:
-        text = await error_text()
-        await callback_query.answer(
+        text = await error_text(lang)
+        await callback_query.message.edit_text(
             text=text
         )
         logger.info(e)
@@ -258,8 +260,7 @@ async def send_zips_for_query(callback_query: CallbackQuery, list_data, zip_name
     os.remove(path_to_zip)
 
 
-
-async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_name: str):
+async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_name, lang: str):
     """
         Скачивает все шрифты в директории YDPath на Яндекс Диске
         и отправляет пользователю архив zip_name.zip
@@ -271,9 +272,9 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_
     # отдельно обрабатываем кейс, если не нашли шрифты
     if len(list_fonts) == 0:
         logger.info('Expected fonts not found')
-        reply_markup = await go_back_to_main_menu()
+        reply_markup = await go_back_to_main_menu(lang)
         await callback_query.message.edit_text(
-            text='По данному запросу не найдено ни одного шрифта!',
+            text=messages_store.get("errors.no_fonts_found", lang),
             reply_markup=reply_markup
         )
         return
@@ -291,7 +292,7 @@ async def start_send_fonts_for_query(callback_query: CallbackQuery, YDpath, zip_
             bot=callback_query.bot,
             chat_id=callback_query.message.chat.id,
         ):
-            await send_zips_for_query(callback_query, list_fonts, zip_name)
+            await send_zips_for_query(callback_query, list_fonts, zip_name, lang)
     except Exception as e:
         logger.info('Error while sendng fonts zip')
         logger.info(e)
@@ -342,18 +343,19 @@ async def try_to_delete_message(callback_query: CallbackQuery):
         logger.info(e)
 
 
-async def error_text() -> str:
+async def error_text(lang: str) -> str:
     """
         Текст для пользователя о видимых ошибках
     """
-    return f"Что-то пошло не так :( Сообщи о проблеме {json.load(open('./CONFIG/config.json'))['owner']} или попробуй позже"
+    owner = json.load(open('./CONFIG/config.json'))['owner']
+    return messages_store.get("errors.smth_wrong", lang, owner=owner)
 
 
-async def error_final(callback_query: CallbackQuery, text: str):
+async def error_final(callback_query: CallbackQuery, text, lang: str):
     """
         Реплай в случае видимых ошибок бота
     """
-    reply_markup = await go_back_to_main_menu()
+    reply_markup = await go_back_to_main_menu(lang)
     # await callback_query.message.delete()
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -363,11 +365,12 @@ async def error_final(callback_query: CallbackQuery, text: str):
     )
 
 
-def no_access_text() -> str:
+def no_access_text(lang: str) -> str:
     """
         Текст для пользователя, если у него нет доступа
     """
-    return 'Привет! Я бот команды визуальных коммуникаций Яндекса\nК сожалению, у тебя нет доступа :(\n\n Если ты тоже из Яндекса, проверь привязан ли телеграм к стаффу'
+    msg_text = messages_store.get("no_access.no_access", lang)
+    return msg_text
 
 
 async def error_no_access(callback_query: CallbackQuery):
@@ -376,6 +379,66 @@ async def error_no_access(callback_query: CallbackQuery):
     """
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
-        text=no_access_text(),
+        text=no_access_text("ru"),
         parse_mode=ParseMode.HTML
     )
+
+
+async def choose_language_query(callback_query: CallbackQuery):
+    """
+        Просим выбрать язык бота
+    """
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+    
+    reply_markup = await language_buttons_from_query()
+
+    msg_text = messages_store.get("intro.lang_old_users", "ru")
+    msg_text += messages_store.get("intro.lang_old_users", "en")
+
+    await callback_query.message.edit_text(
+        text=msg_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
+    )
+
+
+async def choose_language(message: Message):
+    """
+        Просим выбрать язык бота
+    """
+
+    reply_markup = await language_buttons_from_query()
+
+    msg_text = messages_store.get("intro.lang_old_users", "ru")
+    msg_text += messages_store.get("intro.lang_old_users", "en")
+
+    await message.answer(
+        text=msg_text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
+    )
+
+async def access_and_language_check(message: Message) -> Optional[str]:
+    has_access = await is_user(message.from_user.id, message.from_user.username)
+    if not has_access:
+        log_unauthorized(logger, message.from_user.username, message.from_user.id)
+        await message.answer(
+        text=no_access_text("ru")
+        )
+        return None
+    
+    lang = get_user_lang(message.from_user.id)
+    if not lang:
+        await choose_language(message)
+        return None
+    
+    return lang
+
+
+async def language_check(callback_query: CallbackQuery) -> Optional[str]:
+    lang = get_user_lang(callback_query.from_user.id)
+    if not lang:
+        await choose_language_query(callback_query)
+        return None
+    
+    return lang
