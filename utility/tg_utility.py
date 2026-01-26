@@ -47,10 +47,11 @@ async def can_go_back(user_data) -> bool:
     return not (len(user_data) <= 2)
 
 
-async def update_data(state: FSMContext, path, indx_list_start, indx_list_end, can_go_back, child_list) -> None:
+async def update_data(state: FSMContext, path, indx_list_start, indx_list_end, can_go_back, child_list, path_str) -> None:
     await state.update_data(path=path)
     await state.update_data(can_go_back=can_go_back)
     await state.update_data(child_list=child_list)
+    await state.update_data(path_str=path_str)
     await update_indx(state, indx_list_start, indx_list_end)
 
 
@@ -67,7 +68,7 @@ async def get_list_of_files(state: FSMContext) -> list:
     return list_of_files
 
 
-async def from_button_to_file(state: FSMContext,
+async def change_state_from_button_to_file(state: FSMContext,
                               files_list: list, file_name_list: list, to_state, paths_list: list) -> None:
     global dist_indx
     user_info = await state.get_data()

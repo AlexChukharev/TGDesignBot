@@ -14,7 +14,7 @@ from messages.messages_store import get_random_from_prefix, store as messages_st
 from utility.checkers import file_size_in_limit
 from utility.logging_actions import log_action_with_username, log_sending
 from utility.tg_utility import (
-    from_button_to_file, change_state_to_tags, language_check,
+    change_state_from_button_to_file, change_state_to_tags, language_check,
     set_file_type,
     start_send_fonts_for_query,
     can_go_left as check_left,
@@ -95,7 +95,7 @@ def get_disk_folder_name(query_type, lang: str) -> str:
         if query_type in ['pres_templates', 'fonts']:
             return 'Templates'
         if query_type == 'search_by_tags':
-            return 'Advanced_en'
+            return 'Advanced'
         if query_type == 'about_company':
             return 'About company'
         if query_type == 'extra_assets':
@@ -109,44 +109,48 @@ def get_disk_folder_name(query_type, lang: str) -> str:
 @router.callback_query(F.data == "extra_assets")
 async def first_depth_template_find(callback_query: CallbackQuery, state: FSMContext) -> None:
     """
-        TODO описание
+        Обработка основных кнопок в главном меню, инициация обхода дерева Диска
     """
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
+    # грузим базу
     tree = await load_tree()
+    path_str = tree.root.path
     config = await load_config()
     dist_indx = config['dist']
 
+    # минимально обновляем состояние
     await state.clear()
     await state.set_state(WalkerState.choose_button)
     type_file = await set_file_type(callback_query.data, state)
 
+    # получаем язык пользователя или спрашиваем, если он ещё не выбирал
     lang = await language_check(callback_query)
     if not lang:
         return
-    
-    root_child_list = tree.get_children(lang)
+    # теперь будем работать с файлами, соотв. языку — обозначаем в путях
+    path_str += "/" + lang
     path = [callback_query.data]
     path.append(lang)
 
-    indx_child = 0
-    for child in root_child_list:
-        if child == get_disk_folder_name(callback_query.data, lang):
-            break
-        indx_child += 1
-    path.append(root_child_list[indx_child])
-    child_list = tree.get_children(root_child_list[indx_child])
+    child_list = tree.get_children_names(path_str)
+    requested_folder = get_disk_folder_name(callback_query.data, lang)
+    requested_tree_node = tree.get_node(path_str+"/"+requested_folder)
+    if not requested_tree_node:
+        return
+    path_str = requested_tree_node.path
+    path.append(requested_tree_node.name)
+    child_list = tree.get_children_names(path_str)
 
     indx_list_start = 0
     indx_list_end = indx_list_start + dist_indx
-
     can_go_right = await check_right(indx_list_end, len(child_list))
     can_go_left = await check_left(indx_list_start)
 
 
     await state.update_data(file_name_list=[])
-    await update_user_info(state, path, 0, indx_list_end, False, child_list)
+    await update_user_info(state, path, 0, indx_list_end, False, child_list, path_str)
 
     reply_markup = await choose_category_callback(
         child_list[indx_list_start:indx_list_end],
@@ -157,7 +161,8 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
         lang
     )
     text = await choose_text_root(type_file, lang)
-    if type_file == 'about_company':
+    # Костыль, тк в англ версии файл только один
+    if (type_file == 'about_company') and (lang == "en"):
         await finish_template_search(callback_query, state)
         return
 
@@ -170,7 +175,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
 
 async def paginate_template_find(callback_query: CallbackQuery, state: FSMContext, direction, lang: str):
     """
-        TODO описание
+        Обработка переключения между экранами на одном уровне в дереве папок
     """
     config = await load_config()
     dist_indx = config['dist']
@@ -258,14 +263,15 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
 
     user_info = await state.get_data()
     path = user_info['path']
+    path_str = user_info['path_str']
     type_file = user_info['type_file']
 
     indx_list_start = 0
     indx_list_end = indx_list_start + dist_indx
 
     cur_node_name = path.pop(-1)
-    parent_name = tree.get_parent(cur_node_name)
-    child_list = tree.get_children(parent_name)
+    parent = tree.get_parent(path_str)
+    child_list = tree.get_children_names(parent.path)
 
     can_go_back = await check_back(path)
     can_go_right = await check_right(indx_list_end, len(child_list))
@@ -280,28 +286,29 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
         lang
     )
 
-    if parent_name == "root":
+    if parent.name == "root":
         logger.info('Trying get the root folders')
         text = await error_text(lang)
         await error_final(callback_query, text, lang)
         return
-    elif (parent_name == 'Шаблоны') or (parent_name == 'Templates'):
+    elif (parent.name == 'Шаблоны') or (parent.name == 'Templates'):
         text = await choose_text_root(type_file, lang)
     else:
-        text = await choose_text_inner(tree.get_parent(cur_node_name), lang)
+        text = await choose_text_inner(parent.name, lang)
 
     await callback_query.message.edit_text(
         text=text,
         parse_mode=ParseMode.HTML,
         reply_markup=reply_markup
     )
-    await update_user_info(state, path, indx_list_start, indx_list_end, can_go_back, child_list)
+    await update_user_info(state, path, indx_list_start, indx_list_end, can_go_back, child_list, parent.path)
 
 
+# TODO перенести в файл по фидбеку
 @router.callback_query(WalkerState.tags_search, F.data == "another_idea")
-async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
+async def another_idea(callback_query: CallbackQuery, state: FSMContext):
     """
-        TODO описание
+        Обработка ОС "нет нужного варианта" среди идей для вдохновения
     """
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
@@ -310,9 +317,6 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
     if not lang:
         return
 
-    state_info = await state.get_data()
-    # tags_on_prev_step_dict = state_info['tags']
-    # reply_markup = await tags_buttons(tags_on_prev_step_dict['sub_categories'], ('parent' in tags_on_prev_step_dict), False)  
     reply_markup = await ideas_final_buttons(lang)
       
     owner = json.load(open('./CONFIG/config.json'))['owner']
@@ -326,7 +330,7 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(WalkerState.tags_search, F.data == "ideas_from_start")
-async def start_tags_search(callback_query: CallbackQuery, state: FSMContext):
+async def start_tags_search_from_start(callback_query: CallbackQuery, state: FSMContext):
     """
         TODO описание
     """
@@ -403,7 +407,7 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
 
 async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, tag, name: str):
     """
-        TODO описание
+        Обработка финального этапа поиска идей для вдохновения: сборка и отправка файла
     """
 
     lang = await language_check(callback_query)
@@ -463,7 +467,7 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
 @router.callback_query(WalkerState.tags_search, F.data.isnumeric())
 async def tags_search(callback_query: CallbackQuery, state: FSMContext):
     """
-        TODO описание
+        Обработка хождения по дереву тегов
     """
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
@@ -517,6 +521,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
     user_info = await state.get_data()
 
     path = user_info['path']
+    path_str = user_info['path_str']
     parent_name = path[-1]
 
     files_list = await get_list_of_files(state)
@@ -527,14 +532,14 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         return
     file_name = files_list[0][2]
     file_path = files_list[0][1]
-    # TODO переводит состояние – переименовать
-    await from_button_to_file(state, files_list, [file_name], WalkerState.choose_file, [file_path])
+    await change_state_from_button_to_file(state, files_list, [file_name], WalkerState.choose_file, [file_path])
     await state.update_data(file_id=files_list[0][0])
 
     try:
         link = get_download_link(str(file_path) + '/' + str(file_name))
         file_size = get_file_size(str(file_path) + '/' + str(file_name))
     except Exception:
+        # TODO чо за хрень?
         reply_markup = await go_back_to_main_menu(lang)
         template_info = TemplateInfo(str(file_name), str(file_path))
         template_id = get_template_id_by_name(template_info.path, template_info.name)
@@ -555,6 +560,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         )
         try:
             log_sending(logger, str(file_path) + '/' + str(file_name))
+            # log_sending(logger, path_str)
             await download_with_link_query(callback_query, link, file_name, lang)
             if type_file == "extra_assets":
                 if ("Логотипы" in parent_name) or ("logos" in parent_name):
@@ -669,10 +675,13 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
     type_file = user_info['type_file']
     indx_list_start = user_info['indx_list_start']
     path = user_info['path']
+    path_str = user_info['path_str']
 
     indx_child = indx_list_start + int(callback_query.data) - 1
     path.append(child_list[indx_child])
-    child_list = tree.get_children(child_list[indx_child])
+    next_path_str = path_str + "/" + child_list[indx_child]
+
+    child_list = tree.get_children_names(next_path_str)
 
     indx_list_start = 0
     dist_indx = config['dist']
@@ -681,7 +690,7 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
     can_go_back = await check_back(path)
     can_go_right = await check_right(indx_list_end, len(child_list))
     can_go_left = await check_left(indx_list_start)
-    await update_user_info(state, path, indx_list_start, indx_list_end, can_go_back, child_list)
+    await update_user_info(state, path, indx_list_start, indx_list_end, can_go_back, child_list, next_path_str)
 
     # проверяем, спустились ли до "листа" (нет вложенных директорий)
     # если спустились, отправляемся на обработку материалов для запроса
