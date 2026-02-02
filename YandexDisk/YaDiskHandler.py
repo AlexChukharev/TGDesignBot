@@ -94,35 +94,31 @@ def __get_templates_from_trash__(directory: str,
             ya_disk_info.add_template(item.name, path)
 
 
-# Removes outdated information from the folder tree.
-def __delete_nodes__(directory: str, tree: Tree):
-    for item in ya_disk.trash_listdir(directory):
-        if item.is_dir():
-            __delete_nodes__(item.path, tree)
-            tree.delete_node(item.name)
-
-
 # Adds information about new directories to the tree.
 def __add_nodes__(directory: str, last_updated_time, tree: Tree):
+    # отсортировать по пути
+    #for item in sorted(ya_disk.listdir(directory), key=lambda x: x.name):
     for item in ya_disk.listdir(directory):
         if item.is_dir() and (not is_images(item)) and (not is_font(item)):
             if last_updated_time < item.created:
                 if (directory == "/TelegramBot/") or (directory == "/TelegramBotFastTest/"):
-                    tree.insert("root", item.name)
+                    tree.insert("root", item.name, item.path)
                 else:
-                    tree.insert(directory[directory.rfind('/') + 1:], item.name)
+                    parent_path = item.path.rsplit("/", 1)[0]
+                    tree.insert(parent_path, item.name, item.path)
             __add_nodes__(item.path, last_updated_time, tree)
 
 
 # Update actuality of the current tree object.
-def update_tree(tree: Tree, last_updated_time):
+def create_tree(tree: Tree, last_updated_time):
     check_token(ya_disk)
-    __delete_nodes__('/', tree)
     with open("./CONFIG/config.json", "r") as jsonFile:
         data = json.load(jsonFile)
         if data["test_mode"]:
+            tree.root.path = "disk:/TelegramBotFastTest"
             __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree)
         else:
+            tree.root.path = "disk:/TelegramBot"
             __add_nodes__('/TelegramBot/', last_updated_time, tree)
     with open("./Tree/ObjectTree.pkl", "wb") as fp:
         pickle.dump(tree, fp)
