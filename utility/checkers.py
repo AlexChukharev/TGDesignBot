@@ -2,6 +2,8 @@ import json
 import os
 import aiohttp
 
+from CONFIG.config import CONFIG
+
 
 staff_oauth_token = str(os.getenv('STAFF_OAUTH_TOKEN'))
 
@@ -52,12 +54,10 @@ async def is_user(id: int, username: str) -> bool:
     if username is None:
         return False
 
-    with open("./CONFIG/config.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-        if data["test_mode"]:
-            return True
-        else:
-            return (await check_username_by_staff(username)) or check_user_id_in_list(id)
+    if CONFIG["test_mode"]:
+        return True
+    else:
+        return (await check_username_by_staff(username)) or check_user_id_in_list(id)
 
 
 def file_size_in_limit(file_size: int) -> bool:

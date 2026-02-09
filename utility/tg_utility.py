@@ -7,6 +7,7 @@ import urllib.request
 import shutil
 import zipfile
 import io
+from CONFIG.config import CONFIG
 from TelegramHandler.keyboards.buttons import language_buttons_from_query
 import aiohttp
 
@@ -70,7 +71,6 @@ async def get_list_of_files(state: FSMContext) -> list:
 
 async def change_state_from_button_to_file(state: FSMContext,
                               files_list: list, file_name_list: list, to_state, paths_list: list) -> None:
-    global dist_indx
     user_info = await state.get_data()
     path = user_info['path']
     indx_list_start = user_info['indx_list_start']
@@ -90,7 +90,6 @@ async def change_state_from_button_to_file(state: FSMContext,
 
 async def change_state_to_tags(state: FSMContext, to_state,
                               files_list: list, file_name_list: list, paths_list: list, tags: list) -> None:
-    global dist_indx
     user_info = await state.get_data()
     path = user_info['path']
     indx_list_start = user_info['indx_list_start']
@@ -111,7 +110,6 @@ async def change_state_to_tags(state: FSMContext, to_state,
 
 async def admin_from_chose_dir_to_choose_file(state: FSMContext,
                                               files_list: list, file_name_list: list, to_state) -> None:
-    global dist_indx
     user_info = await state.get_data()
     path = user_info['path']
     indx_list_start = user_info['indx_list_start']
@@ -348,8 +346,7 @@ async def error_text(lang: str) -> str:
     """
         Текст для пользователя о видимых ошибках
     """
-    owner = json.load(open('./CONFIG/config.json'))['owner']
-    return messages_store.get("errors.smth_wrong", lang, owner=owner)
+    return messages_store.get("errors.smth_wrong", lang, owner=CONFIG['owner'])
 
 
 async def error_final(callback_query: CallbackQuery, text, lang: str):

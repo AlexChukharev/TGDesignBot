@@ -6,6 +6,7 @@ from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
+from CONFIG.config import CONFIG
 from TelegramHandler.handlers.query_handlers.walker_menu import WalkerState
 from TelegramHandler.keyboards.buttons import get_fonts_buttons, go_back_to_main_menu, ideas_final_buttons
 from messages.languages import get_user_lang
@@ -20,11 +21,10 @@ logger = logging.getLogger(__name__)
 
 def thanks_for_feedback_text(type_file: str, score: str, lang: str) -> str:
     if score == "feedback_bad":
-        owner = json.load(open('./CONFIG/config.json'))['owner']
-        text = messages_store.get("feedback.thanks_for_bad", lang, owner=owner)
+        text = messages_store.get("feedback.thanks_for_bad", lang, owner=CONFIG['owner'])
     else:
         text = reply_text = messages_store.get("feedback.thanks_for_good", lang)
-            
+
     if type_file != "extra_assets" and type_file != "search_by_tags":
         text += "\n" + messages_store.get("feedback.fonts_reminder", lang)
 
@@ -99,8 +99,7 @@ async def prev_template_find(callback_query: CallbackQuery, state: FSMContext):
         return
 
     reply_markup = await go_back_to_main_menu(lang)
-    owner = json.load(open('./CONFIG/config.json'))['owner']
-    reply_text = messages_store.get("feedback.freshness_feedback", lang, owner=owner)
+    reply_text = messages_store.get("feedback.freshness_feedback", lang, owner=CONFIG['owner'])
     await try_to_delete_message(callback_query)
     await callback_query.bot.send_message(
         chat_id=callback_query.from_user.id,
@@ -122,12 +121,8 @@ async def another_idea(callback_query: CallbackQuery, state: FSMContext):
         return
 
     reply_markup = await ideas_final_buttons(lang)
-      
-    owner = json.load(open('./CONFIG/config.json'))['owner']
-    reply_text = messages_store.get("feedback.more_tags", lang, owner=owner)
-    
+    reply_text = messages_store.get("feedback.more_tags", lang, owner=CONFIG['owner'])
     await callback_query.message.edit_text(
         text=reply_text,
         reply_markup=reply_markup
     )
-    pass

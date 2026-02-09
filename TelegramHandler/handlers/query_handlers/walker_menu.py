@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
+from CONFIG.config import CONFIG, get_tags_tree
 from messages.messages_store import get_random_from_prefix, store as messages_store
 
 from Tree.ClassTree import tree
@@ -65,11 +66,6 @@ class WalkerState(StatesGroup):
     tags_search = State()
 
 
-async def load_config():
-    with open("./CONFIG/config.json", "r") as file:
-        return json.load(file)
-
-
 def get_disk_folder_name(query_type, lang: str) -> str:
     """
         Получает название папки на Я. Диске, 
@@ -109,8 +105,7 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
 
     # грузим базу
     path_str = tree.root.path
-    config = await load_config()
-    dist_indx = config['dist']
+    dist_indx = CONFIG['dist']
 
     # минимально обновляем состояние
     await state.clear()
@@ -169,8 +164,7 @@ async def paginate_template_find(callback_query: CallbackQuery, state: FSMContex
     """
         Обработка переключения между экранами на одном уровне в дереве папок
     """
-    config = await load_config()
-    dist_indx = config['dist']
+    dist_indx = CONFIG['dist']
 
     user_info = await state.get_data()
     indx_list_start = user_info['indx_list_start']
@@ -249,8 +243,7 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     if not lang:
         return
     
-    config = await load_config()
-    dist_indx = config['dist']
+    dist_indx = CONFIG['dist']
 
     user_info = await state.get_data()
     path = user_info['path']
@@ -307,19 +300,7 @@ async def start_tags_search_from_start(callback_query: CallbackQuery, state: FSM
         return
     
     reply_text = messages_store.get("menu.start_tags_search", lang)
-    try:
-        if lang == "ru":
-            with open("./CONFIG/tags_tree.json", "r") as tags_file:
-                tags = json.load(tags_file)
-        else:
-            with open("./CONFIG/tags_tree_en.json", "r") as tags_file:
-                tags = json.load(tags_file)
-    except Exception as e:
-        logger.info('Error while reading tags_tree')
-        logger.info(e)
-        text = await error_text(lang)
-        await error_final(callback_query, text, lang)
-        return
+    tags = get_tags_tree(lang)
     await state.update_data(tags=tags)
 
     reply_markup = await tags_buttons(tags['sub_categories'], False, True, lang)
@@ -345,19 +326,7 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
     file_path = files_list[0][1]
     template = file_name[:-5]
     reply_text = messages_store.get("menu.tags_search_on_template", lang, template=template)
-    try:
-        if lang == "ru":
-            with open("./CONFIG/tags_tree.json", "r") as tags_file:
-                tags = json.load(tags_file)
-        else:
-            with open("./CONFIG/tags_tree_en.json", "r") as tags_file:
-                tags = json.load(tags_file)
-    except Exception as e:
-        logger.info('Error while reading tags_tree.json')
-        logger.info(e)
-        text = await error_text(lang)
-        await error_final(callback_query, text, lang)
-        return
+    tags = get_tags_tree(lang)
     await change_state_to_tags(state, WalkerState.tags_search, files_list, [file_name], [file_path], tags)
 
     reply_markup = await tags_buttons(tags['sub_categories'], False, True, lang)
@@ -635,8 +604,6 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
     lang = await language_check(callback_query)
     if not lang:
         return
-    
-    config = await load_config()
 
     user_info = await state.get_data()
     child_list = user_info['child_list']
@@ -652,7 +619,7 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
     child_list = tree.get_children_names(next_path_str)
 
     indx_list_start = 0
-    dist_indx = config['dist']
+    dist_indx = CONFIG['dist']
     indx_list_end = dist_indx + indx_list_start
 
     can_go_back = await check_back(path)

@@ -2,10 +2,10 @@ import logging
 import datetime
 import json
 import os
-import pickle
 
 from dotenv import load_dotenv
 import yadisk
+from CONFIG.config import CONFIG
 from Tree.ClassTree import Tree
 from YandexDisk.YaDiskInfo import YaDiskInfo
 
@@ -65,12 +65,10 @@ def __search_in_directory__(directory: str,
 def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaDiskInfo):
     check_token(ya_disk)
     try:
-        with open("./CONFIG/config.json", "r") as jsonFile:
-            data = json.load(jsonFile)
-            if data["test_mode"]:
-                __search_in_directory__('/TelegramBotFastTest/', last_updated_time, ya_disk_info)
-            else:
-                __search_in_directory__('/TelegramBot/', last_updated_time, ya_disk_info)
+        if CONFIG["test_mode"]:
+            __search_in_directory__('/TelegramBotFastTest/', last_updated_time, ya_disk_info)
+        else:
+            __search_in_directory__('/TelegramBot/', last_updated_time, ya_disk_info)
     except Exception as e:
         ya_disk_info.clear()
         raise Exception("Can't find any files")
@@ -91,43 +89,28 @@ def __get_templates_from_trash__(directory: str,
 
 
 # Adds information about new directories to the tree.
-def __add_nodes__(directory: str, last_updated_time, tree: Tree):
+def __add_nodes__(directory: str, tree: Tree):
     # отсортировать по пути
     #for item in sorted(ya_disk.listdir(directory), key=lambda x: x.name):
     for item in ya_disk.listdir(directory):
         if item.is_dir() and (not is_images(item)) and (not is_font(item)):
-            if last_updated_time < item.created:
-                if (directory == "/TelegramBot/") or (directory == "/TelegramBotFastTest/"):
-                    tree.insert("root", item.name, item.path)
-                else:
-                    parent_path = item.path.rsplit("/", 1)[0]
-                    tree.insert(parent_path, item.name, item.path)
-            __add_nodes__(item.path, last_updated_time, tree)
+            if (directory == "/TelegramBot/") or (directory == "/TelegramBotFastTest/"):
+                tree.insert("root", item.name, item.path)
+            else:
+                parent_path = item.path.rsplit("/", 1)[0]
+                tree.insert(parent_path, item.name, item.path)
+            __add_nodes__(item.path, tree)
 
 
 # Update actuality of the current tree object.
-def create_tree(tree: Tree, last_updated_time):
+def create_tree(tree: Tree):
     check_token(ya_disk)
-    with open("./CONFIG/config.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-        if data["test_mode"]:
-            tree.root.path = "disk:/TelegramBotFastTest"
-            __add_nodes__('/TelegramBotFastTest/', last_updated_time, tree)
-        else:
-            tree.root.path = "disk:/TelegramBot"
-            __add_nodes__('/TelegramBot/', last_updated_time, tree)
-    with open("./Tree/ObjectTree.pkl", "wb") as fp:
-        pickle.dump(tree, fp)
-
-    # Updating last_updated_time in json.
-    last_updated_time = datetime.datetime.now(tz=datetime.timezone.utc)
-    with open("./CONFIG/config.json", "r") as jsonFile:
-        data = json.load(jsonFile)
-
-    data["last-update-time"] = last_updated_time.isoformat()
-
-    with open("./CONFIG/config.json", "w") as jsonFile:
-        json.dump(data, jsonFile)
+    if CONFIG["test_mode"]:
+        tree.root.path = "disk:/TelegramBotFastTest"
+        __add_nodes__('/TelegramBotFastTest/', tree)
+    else:
+        tree.root.path = "disk:/TelegramBot"
+        __add_nodes__('/TelegramBot/', tree)
 
 
 # This function returns all files from YDisk.

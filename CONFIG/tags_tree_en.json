@@ -37,7 +37,7 @@
         {"name": "Process", "tag": "процесс"},
         {"name": "Chart", "tag": "график"},
         {"name": "Table", "tag": "таблица"},
-        {"name": "Scheme/structure)", "tag": "схема"}
+        {"name": "Scheme/structure", "tag": "схема"}
       ]
     },
     {

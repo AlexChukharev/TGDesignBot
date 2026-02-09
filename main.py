@@ -1,5 +1,4 @@
 import asyncio
-import datetime
 
 from dotenv import load_dotenv
 
@@ -15,7 +14,7 @@ async def main():
     # Fill database + create tree with dir
     load_dotenv()
     load_user_langs()
-    create_tree(tree, datetime.datetime.min.replace(tzinfo=datetime.timezone.utc))
+    create_tree(tree)
     # Initialize DataBase.
     initialize_database()
 

@@ -8,6 +8,7 @@ from aiogram.types import CallbackQuery
 from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 
+from CONFIG.config import CONFIG
 from TelegramHandler.keyboards import go_back_to_main_menu
 
 from utility.logging_actions import log_action_with_username
@@ -29,8 +30,7 @@ async def cmd_feedback(message: Message, state: FSMContext):
 
     await state.clear()
     reply_markup = await go_back_to_main_menu(lang)
-    owner = json.load(open('./CONFIG/config.json'))['owner']
-    text = messages_store.get("simples.help", lang, owner=owner)
+    text = messages_store.get("simples.help", lang, owner=CONFIG['owner'])
     await message.answer(
         text=text,
         parse_mode=ParseMode.HTML,
@@ -65,8 +65,7 @@ async def cmd_feedback(callback_query: CallbackQuery):
         return
 
     reply_markup = await go_back_to_main_menu(lang)
-    owner = json.load(open('./CONFIG/config.json'))['owner']
-    text = messages_store.get("simples.bot_faq", lang, owner=owner)
+    text = messages_store.get("simples.bot_faq", lang, owner=CONFIG['owner'])
     await callback_query.message.edit_text(
         text=text,
         parse_mode=ParseMode.HTML,
