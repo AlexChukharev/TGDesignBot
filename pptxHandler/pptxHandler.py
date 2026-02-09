@@ -19,14 +19,18 @@ class SlideInfo:
         self.tags = tags
         self.idx_list = [slide_idx]
 
+    @classmethod
+    def from_slides(self, slides_list: list[tuple[int, ...]], tags: str) -> "SlideInfo":
+        ids = [s[0] for s in slides_list]
+        obj = self(ids[0], tags)
+        obj.add_indexes(ids[1:])
+        return obj
+
     def add_template_info(self, template_info: TemplateInfo):
         self.template_info = template_info
 
     def add_id(self, slide_id: int):
         self.idx_list.append(slide_id)
-
-    def add_index(self, index: int):
-        self.idx_list.append(index)
 
     def add_indexes(self, indexes: list):
         self.idx_list += indexes

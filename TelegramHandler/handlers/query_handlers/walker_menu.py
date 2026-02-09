@@ -303,7 +303,7 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
 @router.callback_query(WalkerState.tags_search, F.data == "ideas_from_start")
 async def start_tags_search_from_start(callback_query: CallbackQuery, state: FSMContext):
     """
-        TODO описание
+        Обработка выбора идей (тега) со старта, с уже выбраным шаблоном
     """
 
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
@@ -340,7 +340,7 @@ async def start_tags_search_from_start(callback_query: CallbackQuery, state: FSM
 
 async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, files_list):
     """
-        TODO описание
+        Переход на корневой экран поиска идей (тега) 
     """
 
     lang = await language_check(callback_query)
@@ -376,7 +376,7 @@ async def start_tags_search(callback_query: CallbackQuery, state: FSMContext, fi
     )
 
 
-async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, tag, name: str):
+async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, tag, tag_name: str):
     """
         Обработка финального этапа поиска идей для вдохновения: сборка и отправка файла
     """
@@ -391,8 +391,10 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
         text = await error_text(lang)
         await error_final(callback_query, text, lang)
         return
-    template_id = files_list[0][0]
-    template_name = files_list[0][2]
+    template = files_list[0]
+    template_id = template[0]
+    template_path = template[1]
+    template_name = template[2]
 
     # получаем слайды по тегам
     slides_list = get_slides_by_tags_and_template_id([tag], template_id)
@@ -406,24 +408,31 @@ async def finish_tags_search(callback_query: CallbackQuery, state: FSMContext, t
         )
     except Exception as e:
         logger.info(e)
-
-    # TODO все, что ниже – надо изучить, выглядит странно
-    path_to_save = f'./Data/slides/{callback_query.message.from_user.id}.pptx'
-    slide_info = SlideInfo(slides_list[0][0], ';'.join([tag]))
-    for slide in slides_list[1:]:
-        slide_info.add_id(slide[0])
-    get_template = get_templates_by_index(template_id)
-    template = get_template[0]
-    template_info = TemplateInfo(template[2], template[1])
+    
+    # создаём SlideInfo со всеми слайдами выборки и фиксируем шаблон — для ф-ции нарезания
+    slide_info = SlideInfo(slides_list[0][0], tag)
+    slide_info.add_indexes([s[0] for s in slides_list[1:]])
+    template_info = TemplateInfo(template_name, template_path)
     slide_info.add_template_info(template_info)
+    
+    path_to_save = f'./Data/slides/{callback_query.message.from_user.id}.pptx'
     get_template_of_slides(path_to_save, slide_info)
     try:
-        file_name_to_send = f'{name} ({template_name[:-5]}).pptx';
+        file_name_to_send = f'{tag_name} ({template_name[:-5]}).pptx';
         log_sending(logger, file_name_to_send)
         await send_file_from_local_for_query(callback_query, path_to_save, file_name_to_send)
     except Exception as e:
         logger.info('Error while send_file_from_local_for_query in finish_tags_search')
         logger.info(e)
+        reply_markup = await go_back_to_main_menu(lang)
+        await try_to_delete_message(callback_query)
+        text = await error_text(lang)
+        await callback_query.bot.send_message(
+            chat_id=callback_query.from_user.id,
+            text=text,
+            reply_markup=reply_markup
+        )
+        return
 
     reply_markup = await ideas_final_buttons_with_feedback(lang)
     await try_to_delete_message(callback_query)
@@ -482,7 +491,7 @@ async def tags_search(callback_query: CallbackQuery, state: FSMContext):
 
 async def finish_template_search(callback_query: CallbackQuery, state: FSMContext):
     """
-        TODO описание
+        Сбор и отправка файла
     """
 
     lang = await language_check(callback_query)
