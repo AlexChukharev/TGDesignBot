@@ -6,12 +6,8 @@ import pickle
 
 from dotenv import load_dotenv
 import yadisk
-from DBHandler import get_template_id_by_name
 from Tree.ClassTree import Tree
 from YandexDisk.YaDiskInfo import YaDiskInfo
-from DBHandler import delete_template
-
-from .YaDiskInfo import TemplateInfo
 
 
 load_dotenv()
@@ -162,20 +158,3 @@ def get_download_link(path: str) -> str:
 def get_file_size(path: str) -> int:
     check_token(ya_disk)
     return ya_disk.get_meta(path).size
-
-
-# Delete file (not directory) from YaDisk.
-def delete_from_disk(path: str):
-    check_token(ya_disk)
-    try:
-        if path.endswith('.pptx'):
-            try:
-                os.remove('./Data/Templates/' + path[path.rfind('/') + 1:])
-            except FileNotFoundError:
-                logger.info('Данного файла нет на локальном диске')
-            template_info = TemplateInfo(path[path.rfind('/') + 1:], path[:path.rfind('/')])
-            template_id = get_template_id_by_name(template_info.path, template_info.name)
-            delete_template(template_id)
-        ya_disk.remove(path)
-    except Exception as e:
-        raise "No such file or directory"

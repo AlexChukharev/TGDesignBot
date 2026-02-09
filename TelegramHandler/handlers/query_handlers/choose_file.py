@@ -1,26 +1,18 @@
 import logging 
-import json
 
-from aiogram.enums import ParseMode
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery
 
+from YandexDisk.YaDiskHandler import get_download_link
 from messages.messages_store import get_random_from_prefix
 from messages.messages_store import store as messages_store
 from utility.logging_actions import log_action_with_username, log_sending
 from utility.tg_utility import error_final, language_check, try_to_delete_message, \
     download_with_link_query, send_file_from_local_for_query, error_text
 
-from DBHandler import (
-    get_fonts_by_template_id,
-    delete_template,
-    get_template_id_by_name
-)
-
-from YandexDisk.YaDiskInfo import TemplateInfo
-from YandexDisk import get_download_link, get_file_size
+from DBHandler import get_fonts_by_template_id
 
 from ...keyboards import go_back_to_main_menu, how_to_install_fonts_buttons
 

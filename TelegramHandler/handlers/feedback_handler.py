@@ -6,10 +6,11 @@ from aiogram import F, Router
 from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 
+from TelegramHandler.handlers.query_handlers.walker_menu import WalkerState
 from TelegramHandler.keyboards.buttons import get_fonts_buttons, go_back_to_main_menu, ideas_final_buttons
 from messages.languages import get_user_lang
 from utility.logging_actions import log_action_with_username
-from utility.tg_utility import choose_language, error_final, error_text, get_list_of_files, try_to_delete_message
+from utility.tg_utility import choose_language, error_final, error_text, get_list_of_files, language_check, try_to_delete_message
 
 from messages.messages_store import store as messages_store
 
@@ -106,3 +107,27 @@ async def prev_template_find(callback_query: CallbackQuery, state: FSMContext):
         text=reply_text,
         reply_markup=reply_markup
     )
+
+
+@router.callback_query(WalkerState.tags_search, F.data == "another_idea")
+async def another_idea(callback_query: CallbackQuery, state: FSMContext):
+    """
+        Обработка ОС "нет нужного варианта" среди идей для вдохновения
+    """
+
+    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
+
+    lang = await language_check(callback_query)
+    if not lang:
+        return
+
+    reply_markup = await ideas_final_buttons(lang)
+      
+    owner = json.load(open('./CONFIG/config.json'))['owner']
+    reply_text = messages_store.get("feedback.more_tags", lang, owner=owner)
+    
+    await callback_query.message.edit_text(
+        text=reply_text,
+        reply_markup=reply_markup
+    )
+    pass

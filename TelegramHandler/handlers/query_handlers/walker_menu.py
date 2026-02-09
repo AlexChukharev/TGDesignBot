@@ -8,7 +8,6 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
-from messages.languages import get_user_lang
 from messages.messages_store import get_random_from_prefix, store as messages_store
 
 from utility.checkers import file_size_in_limit
@@ -37,8 +36,7 @@ from ...keyboards.buttons import (
     go_back_to_main_menu_with_feedback,
     go_back_to_main_menu_with_feedback_and_freshness,
     ideas_final_buttons_with_feedback,
-    tags_buttons,
-    ideas_final_buttons
+    tags_buttons
 )
 from ...keyboards import get_fonts_buttons, how_to_install_fonts_buttons
 
@@ -48,8 +46,6 @@ from YandexDisk import get_download_link, get_file_size
 from YandexDisk.YaDiskInfo import TemplateInfo
 
 from DBHandler import (
-    delete_template,
-    get_template_id_by_name,
     get_slides_by_tags_and_template_id,
     get_templates_by_index
 )
@@ -304,31 +300,6 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     await update_user_info(state, path, indx_list_start, indx_list_end, can_go_back, child_list, parent.path)
 
 
-# TODO перенести в файл по фидбеку
-@router.callback_query(WalkerState.tags_search, F.data == "another_idea")
-async def another_idea(callback_query: CallbackQuery, state: FSMContext):
-    """
-        Обработка ОС "нет нужного варианта" среди идей для вдохновения
-    """
-
-    log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
-
-    lang = await language_check(callback_query)
-    if not lang:
-        return
-
-    reply_markup = await ideas_final_buttons(lang)
-      
-    owner = json.load(open('./CONFIG/config.json'))['owner']
-    reply_text = messages_store.get("feedback.more_tags", lang, owner=owner)
-    
-    await callback_query.message.edit_text(
-        text=reply_text,
-        reply_markup=reply_markup
-    )
-    pass
-
-
 @router.callback_query(WalkerState.tags_search, F.data == "ideas_from_start")
 async def start_tags_search_from_start(callback_query: CallbackQuery, state: FSMContext):
     """
@@ -539,11 +510,7 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         link = get_download_link(str(file_path) + '/' + str(file_name))
         file_size = get_file_size(str(file_path) + '/' + str(file_name))
     except Exception:
-        # TODO чо за хрень?
         reply_markup = await go_back_to_main_menu(lang)
-        template_info = TemplateInfo(str(file_name), str(file_path))
-        template_id = get_template_id_by_name(template_info.path, template_info.name)
-        delete_template(template_id)
         await try_to_delete_message(callback_query)
         text = await error_text(lang)
         await callback_query.bot.send_message(
@@ -553,7 +520,6 @@ async def finish_template_search(callback_query: CallbackQuery, state: FSMContex
         )
         return
 
-    # TODO перенести отправку в отдельную функцию
     if file_size_in_limit(file_size):
         await callback_query.message.edit_text(
             text=get_random_from_prefix("waiting", lang)

@@ -7,4 +7,3 @@ from .select_scripts import (get_templates_from_child_directories,
                              get_templates_by_index,
                              is_user_admin,
                              get_images_from_child_directories)
-from .delete_scripts import delete_template

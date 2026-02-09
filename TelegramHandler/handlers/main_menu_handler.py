@@ -8,7 +8,6 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.types.input_file import FSInputFile
 from aiogram.enums import ParseMode
 
-from messages.languages import get_user_lang
 from utility.checkers import is_user
 from utility.logging_actions import log_action_with_username, log_unauthorized
 from utility.tg_utility import access_and_language_check, language_check, no_access_text, error_no_access

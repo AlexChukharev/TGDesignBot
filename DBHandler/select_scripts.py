@@ -7,6 +7,10 @@ logger = logging.getLogger(__name__)
 
 
 def get_user_role(user_id) -> str | None:
+    """
+        Получает роль по id: user или admin.
+        Сейчас не используется
+    """
     sql = "select role from users where user_id = %s"
 
     config = load_config()
@@ -25,6 +29,10 @@ def get_user_role(user_id) -> str | None:
 
 
 def is_user_admin(user_id) -> bool:
+    """
+        Проверяет админ ли пользователь.
+        Сейчас не используется, тк нет админской панели
+    """
     user_role = get_user_role(user_id)
     return user_role == "admin"
 
