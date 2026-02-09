@@ -52,3 +52,5 @@ class Tree:
         if node is None:
             raise Exception("No such node")
         return node
+    
+tree = Tree()

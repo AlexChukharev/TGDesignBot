@@ -1,6 +1,5 @@
 import logging
 import json
-import pickle
 
 from aiogram import F, Router
 from aiogram.enums import ParseMode
@@ -9,6 +8,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 
 from messages.messages_store import get_random_from_prefix, store as messages_store
+
+from Tree.ClassTree import tree
 
 from utility.checkers import file_size_in_limit
 from utility.logging_actions import log_action_with_username, log_sending
@@ -69,10 +70,6 @@ async def load_config():
         return json.load(file)
 
 
-async def load_tree() -> Tree:
-    return pickle.load(open("./Tree/ObjectTree.pkl", "rb"))
-
-
 def get_disk_folder_name(query_type, lang: str) -> str:
     """
         Получает название папки на Я. Диске, 
@@ -111,7 +108,6 @@ async def first_depth_template_find(callback_query: CallbackQuery, state: FSMCon
     log_action_with_username(logger, callback_query.data, callback_query.from_user.username, callback_query.from_user.id)
 
     # грузим базу
-    tree = await load_tree()
     path_str = tree.root.path
     config = await load_config()
     dist_indx = config['dist']
@@ -253,7 +249,6 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     if not lang:
         return
     
-    tree = await load_tree()
     config = await load_config()
     dist_indx = config['dist']
 
@@ -265,7 +260,6 @@ async def prev_dir_template_find(callback_query: CallbackQuery, state: FSMContex
     indx_list_start = 0
     indx_list_end = indx_list_start + dist_indx
 
-    cur_node_name = path.pop(-1)
     parent = tree.get_parent(path_str)
     child_list = tree.get_children_names(parent.path)
 
@@ -642,7 +636,6 @@ async def navigate_template_find(callback_query: CallbackQuery, state: FSMContex
     if not lang:
         return
     
-    tree = await load_tree()
     config = await load_config()
 
     user_info = await state.get_data()
