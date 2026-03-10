@@ -15,16 +15,6 @@ ya_disk = yadisk.YaDisk(token=str(os.getenv('YANDEX_DISK_TOKEN')))
 logger = logging.getLogger(__name__)
 
 
-# Takes item from YaDisk and checking is it a photo directory.
-def is_images(item) -> bool:
-    return item.is_dir() and ('фото' in item.name.lower() or "photo" in item.name.lower())
-
-
-# Takes item from YaDisk and checking is it a graphics directory.
-def is_graphics(item) -> bool:
-    return item.is_dir() and ('график' in item.name.lower() or "graphic" in item.name.lower())
-
-
 # Takes item from YaDisk and checking is it a template.
 def is_template(item) -> bool:
     return item.name.endswith('.pptx')
@@ -46,14 +36,11 @@ def __search_in_directory__(directory: str,
                             last_updated_time: datetime.datetime,
                             ya_disk_info: YaDiskInfo):
     for item in ya_disk.listdir(directory):
-        if item.is_dir() and (not is_images(item)) and (not is_graphics(item)):
+        if item.is_dir():
             __search_in_directory__(item.path, last_updated_time, ya_disk_info)
 
         elif last_updated_time < item.created:
-            if is_images(item) or is_graphics(item):
-                ya_disk_info.add_image(item.path, item.path[: item.path.rfind('/')])
-
-            elif is_template(item):
+            if is_template(item):
                 ya_disk_info.add_template(item.name, item.path[: item.path.rfind('/')])
 
             elif is_font(item):
@@ -79,7 +66,7 @@ def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaD
 def __get_templates_from_trash__(directory: str,
                                  ya_disk_info: YaDiskInfo):
     for item in ya_disk.trash_listdir(directory):
-        if item.is_dir() and (not is_images(item)) and (not is_graphics(item)):
+        if item.is_dir():
             __get_templates_from_trash__(item.path, ya_disk_info)
         elif is_template(item):
             path = directory.split('/')
@@ -93,7 +80,7 @@ def __add_nodes__(directory: str, tree: Tree):
     # отсортировать по пути
     #for item in sorted(ya_disk.listdir(directory), key=lambda x: x.name):
     for item in ya_disk.listdir(directory):
-        if item.is_dir() and (not is_images(item)) and (not is_font(item)):
+        if item.is_dir() and (not is_font(item)):
             if (directory == "/TelegramBot/") or (directory == "/TelegramBotFastTest/"):
                 tree.insert("root", item.name, item.path)
             else:

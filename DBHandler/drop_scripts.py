@@ -10,7 +10,6 @@ def drop_tables():
     """ Drop All tables in the database"""
     commands = (
         """drop table if exists fonts;""",
-        """drop table if exists images;""",
         """drop table if exists slides""",
         """drop table if exists users""",
         """drop table if exists templates"""

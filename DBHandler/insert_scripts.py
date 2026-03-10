@@ -91,22 +91,6 @@ def insert_many_fonts(font_list: list):
         insert_font(font_info)
 
 
-def insert_image(image_info: ImageInfo):
-    list_of_template_id = select_scripts.get_templates_from_directory(image_info.path)
-    sql = """insert into images(template_id, path, link)
-             values (%s, %s, %s) returning *;"""
-    for template_id in list_of_template_id:
-        __insert_single_value__(sql,
-                                int(template_id[0]),
-                                image_info.path,
-                                image_info.position)
-
-
-def insert_many_images(image_list: list):
-    for image_info in image_list:
-        insert_image(image_info)
-
-
 def insert_slides(template_id: int, slide_info: pptxHandler.SlideInfo):
     sql = """insert into slides(slide_id, template_id, tags) 
              values (%s, %s, %s) returning *;"""
