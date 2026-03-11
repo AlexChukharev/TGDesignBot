@@ -6,15 +6,15 @@ sending fonts to slides and presentations, and retrieving
 all fonts from the folder where the user is located
 
 ## How to install (Linux)
-0. Python 3.10.12 + install ``` libgdiplus/mono-libgdiplus``` 
 1. Clone the repository using `git clone`
 2. Create a virtual environment near the repository folder using 
 ``` 
-sudo python3 -m venv myenv
+pyenv install 3.10.12
+pyenv virtualenv 3.10.12 myenv_3_10
 ```
 3. Activate the virtual environment
 ``` 
-source myenv/bin/activate
+pyenv activate myenv_3_10
 ```
 4. Download the libraries
 ``` 
@@ -44,7 +44,11 @@ pip install -r TGDesignBot/requirements.txt
    ```
 6. In the `TGDesignBot` folder:
    1. Create file `.env`
-   2. In `.env` add strings
+   2. Set the access
+   ```
+   chmod 600 .env
+   ```
+   3. In `.env` add strings
    ``` 
    BOT_TOKEN = 'YOUR_BOT_TOKEN'
    YANDEX_DISK_TOKEN = 'YOUR_YDISK_TOKEN'
