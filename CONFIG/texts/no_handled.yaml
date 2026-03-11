@@ -1,0 +1,9 @@
+prefix: no_handled
+messages:
+  query:
+    ru: |
+        Ой-ой, тебя давно не было!
+        Зайди сначала в главное меню, чтобы ничего не потерять 😉
+    en: |
+        Hey, long time no see!
+        Open the main menu first, so you don’t lose anything 😉

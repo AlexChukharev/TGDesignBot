@@ -1,0 +1,109 @@
+prefix: buttons
+messages:
+  search_by_tags:
+    ru: |
+      💡 Идеи оформления слайдов
+    en: |
+      💡 Slide Ideas
+  
+  pres_templates:
+    ru: |
+      🎨 Шаблоны презентаций
+    en: |
+      🎨 Templates
+
+  fonts:
+    ru: |
+      🖋 Корпоративные шрифты
+    en: |
+      🖋 Brand Fonts
+  
+  extra_assets:
+    ru: |
+      🧩 Дополнительные материалы
+    en: |
+      🧩 Useful Assets
+
+  about_company:
+    ru: |
+      💼 Готовые слайды о компании
+    en: |
+      💼 Official Company Slides
+
+  designer:
+    ru: |
+      👩‍🎨 Вики дизайнеров
+    en: |
+      📎 Design Request
+
+  bot_faq:
+    ru: |
+      ❓ Q&A
+    en: |
+      ❓ Q&A
+
+  freshness_feedback:
+    ru: |
+      Нашел устаревший лого?
+    en: |
+      Found an outdated logo?
+
+  main_menu:
+    ru: |
+      В главное меню
+    en: |
+      Main menu
+
+  prev_dir:
+    ru: |
+      Назад
+    en: |
+      Back
+
+  prev:
+    ru: |
+      Предыдущие варианты
+    en: |
+      Previous options
+
+  next:
+    ru: |
+      Еще варианты
+    en: |
+      More options 
+
+  get_fonts:
+    ru: |
+      Скачать необходимые шрифты
+    en: |
+      Get the required fonts
+
+  install_fonts_help:
+    ru: |
+      Как установить шрифты?
+    en: |
+      How to install fonts?
+
+  get_fonts_from_all_pres:
+    ru: |
+      Забрать сразу все
+    en: |
+      Get the whole pack
+
+  go_back_in_tags_inline_button:
+    ru: |
+      Назад
+    en: |
+      Back
+
+  another_idea:
+    ru: |
+      Нужно что-то другое
+    en: |
+      Need another option?
+
+  ideas_from_start:
+    ru: |
+      Посмотреть другие идеи
+    en: |
+      Explore more ideas 

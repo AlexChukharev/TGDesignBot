@@ -1,0 +1,35 @@
+prefix: feedback
+messages:
+  thanks_for_good:
+    ru: |
+      Спасибо за фидбек ❤️
+    en: |
+      Thanks ❤️
+  
+  thanks_for_bad:
+    ru: |
+      Спасибо за фидбек ❤️
+      Буду рад, если поделишься впечатлениями подробнее в поддержке: {owner}
+    en: |
+      Thanks for your feedback ❤️
+      I’d be happy if you could share more details with our support chat: {owner}
+
+  fonts_reminder:
+    ru: |
+      И напоминаю про шрифты...
+    en: |
+      Don't forget the fonts!
+
+  freshness_feedback:
+    ru: |
+      Обязательно напиши об этом {owner}!
+    en: |
+      Please make sure to let {owner} know!
+
+  more_tags:
+    ru: |
+      Если нет подходящего варианта, напиши {owner}
+      А пока, возможно, тебе поможет что-то из готового?
+    en: |
+      If none of these work, message {owner}.
+      Meanwhile, maybe something from our ready options will help?

@@ -1,3 +1,4 @@
+import logging
 import requests
 import os
 
@@ -6,7 +7,9 @@ from pptx import Presentation
 from YandexDisk.YaDiskInfo import TemplateInfo
 import aspose.slides as slides
 
+
 ya_disk = yadisk.YaDisk(token=str(os.getenv('YANDEX_DISK_TOKEN')))
+logger = logging.getLogger(__name__)
 
 
 class SlideInfo:
@@ -16,14 +19,18 @@ class SlideInfo:
         self.tags = tags
         self.idx_list = [slide_idx]
 
+    @classmethod
+    def from_slides(self, slides_list: list[tuple[int, ...]], tags: str) -> "SlideInfo":
+        ids = [s[0] for s in slides_list]
+        obj = self(ids[0], tags)
+        obj.add_indexes(ids[1:])
+        return obj
+
     def add_template_info(self, template_info: TemplateInfo):
         self.template_info = template_info
 
     def add_id(self, slide_id: int):
         self.idx_list.append(slide_id)
-
-    def add_index(self, index: int):
-        self.idx_list.append(index)
 
     def add_indexes(self, indexes: list):
         self.idx_list += indexes
@@ -60,7 +67,7 @@ def get_slides_information(path: str) -> list:
                     slides_info.append(SlideInfo(comment.slide.slide_number - 1,
                                                  ";".join(comment.text.split())))
     except Exception as e:
-        print(e)
+        logger.info(e)
     finally:
         return slides_info
 

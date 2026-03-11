@@ -1,0 +1,63 @@
+prefix: menu
+messages:
+  main:
+    ru: |
+        Чем могу помочь?
+    en: |
+        How can I help?
+  
+  choose_text_inner:
+    ru: |
+        У нас есть несколько шаблонов для подразделения <b>{folder}</b>
+        Какой тебе нужен?
+    en: |
+        There are several templates for <b>{folder}</b>
+        Which one do you need?
+
+  choose_text_root_template:
+    ru: |
+        Для какого подразделения нужен шаблон?
+    en: |
+        Which department do you need the template for?
+
+  choose_text_root_font:
+    ru: |
+        У нас очень много шрифтов — тебе для какого подразделения нужны?
+    en: |
+        We have a lot of fonts — which department do you need them for?
+
+  choose_text_root_search_by_tags:
+    ru: |
+        Я подскажу варианты, как можно оформить твой контент!
+        В каком шаблоне работаешь?
+    en: |
+        I’ll help you style your content!
+        For now, it’s available <b>only for the Yango template</b>
+
+  choose_text_root_about_company:
+    ru: |
+        У меня подготовлены слайды на двух языках — тебе какие нужны?
+    en: |
+        Here you go...
+
+  choose_text_root_extra_assets:
+    ru: |
+        Здесь собраны универсальные элементы, которые можно использовать в любых презентациях
+        Что тебя интересует?
+    en: |
+        Here you’ll find universal elements you can use in any presentation
+        What are you looking for?
+
+  start_tags_search:
+    ru: |
+        Что хочешь нарисовать?
+    en: |
+        What do you want to visualize?
+
+  tags_search_on_template:
+    ru: |
+        Отлично, делаем презентацию в шаблоне <b>{template}</b>
+        Теперь расскажи, какой слайд нам нужен'
+    en: |
+        Great! We’ll use the <b>{template}</b> template.
+        So, which slide do we need?

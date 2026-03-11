@@ -1,12 +1,15 @@
+import logging
 import psycopg2
 from DBHandler.config import load_config
+
+
+logger = logging.getLogger(__name__)
 
 
 def drop_tables():
     """ Drop All tables in the database"""
     commands = (
         """drop table if exists fonts;""",
-        """drop table if exists images;""",
         """drop table if exists slides""",
         """drop table if exists users""",
         """drop table if exists templates"""
@@ -19,4 +22,4 @@ def drop_tables():
                 for command in commands:
                     cur.execute(command)
     except (psycopg2.DatabaseError, Exception) as error:
-        print(error)
+        logger.info(error)

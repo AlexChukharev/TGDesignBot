@@ -1,5 +1,9 @@
+import logging
 import psycopg2
 from DBHandler.config import load_config
+
+
+logger = logging.getLogger(__name__)
 
 
 def create_tables():
@@ -40,15 +44,7 @@ def create_tables():
                 foreign key (template_id) references templates(template_id) on delete cascade,
                 tags text
             );
-        """,
-        # """
-        #     create table if not exists images (
-        #         image_id serial primary key,
-        #         template_id serial,
-        #         foreign key (template_id) references templates(template_id) on delete cascade,
-        #         path text not null
-        #     );
-        # """
+        """
     )
     try:
         config = load_config()
@@ -58,7 +54,7 @@ def create_tables():
                 for command in commands:
                     cur.execute(command)
     except (psycopg2.DatabaseError, Exception) as error:
-        print(error)
+        logger.info(error)
 
 
 if __name__ == "__main__":

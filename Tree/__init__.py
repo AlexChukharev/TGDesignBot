@@ -1,1 +1,1 @@
-from .ClassTree import Tree
+from .ClassTree import Tree, tree

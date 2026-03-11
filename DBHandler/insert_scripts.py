@@ -1,8 +1,12 @@
+import logging
 import psycopg2
 from DBHandler.config import load_config
 from YandexDisk.YaDiskInfo import TemplateInfo, FontInfo, ImageInfo
 from pptxHandler import pptxHandler
 from . import select_scripts as select_scripts
+
+
+logger = logging.getLogger(__name__)
 
 
 # This func takes a sql query and pack of values. Do query with unpacked values
@@ -20,7 +24,7 @@ def __insert_single_value__(sql, *obj) -> int:
                 # commit the changes to the database
                 conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.info(error)
 
     finally:
         return obj_id
@@ -39,7 +43,7 @@ def __insert_many_values__(sql, list_of_values: list):
                 # commit the changes to the database
                 conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        logger.info(error)
 
 
 # Insert a new user into the users table
@@ -85,22 +89,6 @@ def insert_font(font_info: FontInfo):
 def insert_many_fonts(font_list: list):
     for font_info in font_list:
         insert_font(font_info)
-
-
-def insert_image(image_info: ImageInfo):
-    list_of_template_id = select_scripts.get_templates_from_directory(image_info.path)
-    sql = """insert into images(template_id, path, link)
-             values (%s, %s, %s) returning *;"""
-    for template_id in list_of_template_id:
-        __insert_single_value__(sql,
-                                int(template_id[0]),
-                                image_info.path,
-                                image_info.position)
-
-
-def insert_many_images(image_list: list):
-    for image_info in image_list:
-        insert_image(image_info)
 
 
 def insert_slides(template_id: int, slide_info: pptxHandler.SlideInfo):

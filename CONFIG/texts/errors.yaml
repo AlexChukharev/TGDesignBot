@@ -1,0 +1,14 @@
+prefix: errors
+messages:
+  no_fonts_found:
+    ru: |
+      По данному запросу не найдено ни одного шрифта...
+    en: |
+      No fonts match your search...
+  
+  smth_wrong:
+    ru: |
+      Что-то пошло не так :( Сообщи о проблеме {owner} или попробуй позже
+    en: |
+      Something went wrong :(
+      Please report the issue to {owner} or try again later

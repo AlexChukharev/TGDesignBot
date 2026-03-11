@@ -1,0 +1,15 @@
+prefix: no_access
+messages:
+  no_access:
+    ru: |
+        Привет!
+        Я внутренний бот Яндекса от команды визуальных коммуникаций VISCOMMS.
+        К сожалению, у тебя нет доступа :(
+
+        Если ты тоже из Яндекса, проверь привязан ли телеграм к стаффу
+    en: |
+        Hi!
+        I'm the Visual Comms Team's assistant bot for the Yandex employees. 
+        It seems you don't have an no_access :(
+
+        If you are working at Yandex, please add your telegram account on your Staff page
