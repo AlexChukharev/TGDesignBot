@@ -52,10 +52,7 @@ def __search_in_directory__(directory: str,
 def get_last_added_files(last_updated_time: datetime.datetime, ya_disk_info: YaDiskInfo):
     check_token(ya_disk)
     try:
-        if CONFIG["test_mode"]:
-            __search_in_directory__('/TelegramBotFastTest/', last_updated_time, ya_disk_info)
-        else:
-            __search_in_directory__('/TelegramBot/', last_updated_time, ya_disk_info)
+        __search_in_directory__(CONFIG["yadisk_directory"], last_updated_time, ya_disk_info)
     except Exception as e:
         ya_disk_info.clear()
         raise Exception("Can't find any files")
@@ -81,7 +78,7 @@ def __add_nodes__(directory: str, tree: Tree):
     #for item in sorted(ya_disk.listdir(directory), key=lambda x: x.name):
     for item in ya_disk.listdir(directory):
         if item.is_dir() and (not is_font(item)):
-            if (directory == "/TelegramBot/") or (directory == "/TelegramBotFastTest/"):
+            if directory == CONFIG["yadisk_directory"]:
                 tree.insert("root", item.name, item.path)
             else:
                 parent_path = item.path.rsplit("/", 1)[0]
@@ -92,12 +89,8 @@ def __add_nodes__(directory: str, tree: Tree):
 # Update actuality of the current tree object.
 def create_tree(tree: Tree):
     check_token(ya_disk)
-    if CONFIG["test_mode"]:
-        tree.root.path = "disk:/TelegramBotFastTest"
-        __add_nodes__('/TelegramBotFastTest/', tree)
-    else:
-        tree.root.path = "disk:/TelegramBot"
-        __add_nodes__('/TelegramBot/', tree)
+    tree.root.path = "disk:" + CONFIG["yadisk_directory"][:-1]
+    __add_nodes__(CONFIG["yadisk_directory"], tree)
 
 
 # This function returns all files from YDisk.
